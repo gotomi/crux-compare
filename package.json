@@ -16,9 +16,12 @@
   "dependencies": {
     "@astrojs/netlify": "7.0.6",
     "@astrojs/svelte": "^8.0.4",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "astro": "^6.1.5",
+    "eventsource": "^4.1.0",
     "kruk": "0.4.16",
     "prepend-http": "^4.0.0",
-    "svelte": "^5.55.3"
+    "svelte": "^5.55.3",
+    "zod": "^4.3.6"
   }
 }
