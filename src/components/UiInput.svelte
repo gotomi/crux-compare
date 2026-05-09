@@ -3,17 +3,37 @@
         label,
         name,
         value,
-        placeholder = "",
+        placeholder = '',
         remove,
         error,
         touched,
         onChange,
     } = $props();
 
+    let localError = $state('');
+
+    function isValidUrl(str) {
+        if (!str || str.trim().length === 0) return true;
+        try {
+            const url = new URL(str.match(/^https?:\/\//) ? str : `https://${str}`);
+            return !!url.hostname && url.hostname.includes('.');
+        } catch {
+            return false;
+        }
+    }
+
     function handleInput(e) {
         const newValue = e.target.value;
+        localError = '';
         if (onChange) {
             onChange(newValue);
+        }
+    }
+
+    function handleBlur(e) {
+        const newValue = e.target.value;
+        if (newValue && !isValidUrl(newValue)) {
+            localError = 'Please enter a valid URL';
         }
     }
 </script>
@@ -29,20 +49,21 @@
             {value}
             {placeholder}
             type="text"
-            aria-label={label}
+            aria-label={label || 'URL input'}
             aria-describedby={error && touched
-                ? name + "-error"
-                : name + "-help"}
-            aria-invalid={error && touched ? "true" : "false"}
+                ? name + '-error'
+                : name + '-help'}
+            aria-invalid={!!(error && touched)}
             required
             class="text-input"
             class:error={error && touched}
             oninput={handleInput}
+            onblur={handleBlur}
             onkeydown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === 'Enter') {
                     e.preventDefault();
-                    // Focus next input or submit button
                     const form = e.target.form;
+                    if (!form) return;
                     const inputs = Array.from(
                         form.querySelectorAll('input[type="text"]'),
                     );
@@ -50,7 +71,7 @@
                     if (currentIndex < inputs.length - 1) {
                         inputs[currentIndex + 1].focus();
                     } else {
-                        form.querySelector('button[type="submit"]').focus();
+                        form.querySelector('button[type="submit"]')?.focus();
                     }
                 }
             }}
@@ -59,20 +80,24 @@
             type="button"
             class="remove-btn"
             onclick={remove}
-            aria-label={`Remove ${label} input`}
-            title={`Remove ${label} input`}
+            aria-label={`Remove ${label || 'URL'} input`}
+            title={`Remove ${label || 'URL'} input`}
         >
             <span class="remove-icon" aria-hidden="true">×</span>
         </button>
     </div>
     {#if error && touched}
         <div
-            id={name + "-error"}
+            id={name + '-error'}
             class="input-error"
             role="alert"
             aria-live="polite"
         >
             {error}
+        </div>
+    {:else if localError}
+        <div class="input-error" role="alert" aria-live="polite">
+            {localError}
         </div>
     {/if}
 </div>
@@ -130,7 +155,7 @@
     }
 
     .input-error::before {
-        content: "⚠";
+        content: '⚠';
         font-size: 0.875rem;
     }
 
@@ -165,9 +190,6 @@
         line-height: 1;
     }
 
-
-
-    /* Responsive styles */
     @media (max-width: 768px) {
         .input-wrapper {
             flex-direction: column;
@@ -182,7 +204,7 @@
 
         .text-input {
             padding: 14px 16px;
-            font-size: 16px; /* Prevents zoom on iOS */
+            font-size: 16px;
         }
     }
 

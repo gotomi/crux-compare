@@ -1,8 +1,13 @@
 {
-  "compileOptions": {
-    "moduleResolution": "node"
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "verbatimModuleSyntax": false
   },
-
   "include": ["src/**/*"],
   "exclude": ["node_modules", "build", "dist", "public", "_src"]
 }

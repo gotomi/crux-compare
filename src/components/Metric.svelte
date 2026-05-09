@@ -2,7 +2,7 @@
     let { post } = $props();
     import UrlWithIcon from "./UrlWithIcon.svelte";
 
-    const rank = ["good", "average", "poor"];
+    const rank = ['good', 'average', 'poor'];
 
     const rankMap = {
         good: " 🟢 ",
