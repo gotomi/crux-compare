@@ -1,17 +1,24 @@
 <script>
-    let { data } = $props();
-    import Metric from "../components/Metric.svelte";
-    import Legend from "../components/Legend.svelte";
-    function getMetric(data, metric) {
-        return data.metrics[metric];
-    }
+let { data } = $props();
+import Metric from "../components/Metric.svelte";
+import Legend from "../components/Legend.svelte";
+import { METRIC_KEYS } from "../lib/crux";
+
+const metricsByCategory = $derived(
+	METRIC_KEYS.map((key) => ({
+		key,
+		entries: data?.metrics?.[key] ?? [],
+	})),
+);
 </script>
 
-{#each ["FCP", "LCP", "CLS", "TTFB", "INP", "RTT"] as metric}
-    <article>
-        <Legend {metric} />
-        {#each getMetric(data, metric) as p}
-            <Metric post={p} />
-        {/each}
-    </article>
+{#each metricsByCategory as { key, entries }}
+    {#if entries.length > 0}
+        <article>
+            <Legend metric={key} />
+            {#each entries as p}
+                <Metric post={p} />
+            {/each}
+        </article>
+    {/if}
 {/each}

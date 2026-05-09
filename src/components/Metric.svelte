@@ -1,14 +1,14 @@
 <script>
-    let { post } = $props();
-    import UrlWithIcon from "./UrlWithIcon.svelte";
+let { post } = $props();
+import UrlWithIcon from "./UrlWithIcon.svelte";
 
-    const rank = ["good", "average", "poor"];
+const rank = ["good", "average", "poor"];
 
-    const rankMap = {
-        good: " 🟢 ",
-        average: " 🟠 ",
-        poor: " 🔴 ",
-    };
+const rankMap = {
+	good: " 🟢 ",
+	average: " 🟠 ",
+	poor: " 🔴 ",
+};
 </script>
 
 <div class="metric-card">

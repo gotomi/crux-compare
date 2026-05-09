@@ -1,99 +1,98 @@
 <script>
-    import { onMount } from "svelte";
-    import Header from "./Header.svelte";
-    import UrlsByMetric from "./UrlsByMetric.svelte";
-    import MetricsByUrl from "./MetricsByUrl.svelte";
+import { onMount } from "svelte";
+import Header from "./Header.svelte";
+import UrlsByMetric from "./UrlsByMetric.svelte";
+import MetricsByUrl from "./MetricsByUrl.svelte";
 
-    import UiInput from "./UiInput.svelte";
+import UiInput from "./UiInput.svelte";
 
-    const formFactorValues = ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"];
+const formFactorValues = ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"];
 
-    let initialData = $state({
-        url: [""],
-        checkOrigin: true,
-        formFactor: "PHONE",
-    });
+let initialData = $state({
+	url: [""],
+	checkOrigin: true,
+	formFactor: "PHONE",
+});
 
-    let promise = $state(Promise.reject(new Error("")));
-    let isLoading = $state(false);
-    let errors = $state({});
-    let touched = $state({});
+let promise = $state(Promise.reject(new Error("")));
+let isLoading = $state(false);
+let errors = $state({});
+let touched = $state({});
 
-    function addItem(e) {
-        e.preventDefault();
-        const len = initialData.url.length;
-        initialData.url[len] = "";
-        touched[`url_${len}`] = false;
-    }
+function addItem(e) {
+	e.preventDefault();
+	const len = initialData.url.length;
+	initialData.url[len] = "";
+	touched[`url_${len}`] = false;
+}
 
-    function removeItem(i) {
-        return function () {
-            initialData.url.splice(i, 1);
-            initialData.url = [...initialData.url];
+function removeItem(i) {
+	return () => {
+		initialData.url.splice(i, 1);
+		initialData.url = [...initialData.url];
 
-            // Clean up errors and touched state for removed item
-            const newErrors = { ...errors };
-            const newTouched = { ...touched };
-            delete newErrors[`url_${i}`];
-            delete newTouched[`url_${i}`];
-            errors = newErrors;
-            touched = newTouched;
-        };
-    }
+		const newErrors = { ...errors };
+		const newTouched = { ...touched };
+		delete newErrors[`url_${i}`];
+		delete newTouched[`url_${i}`];
+		errors = newErrors;
+		touched = newTouched;
+	};
+}
 
-    function handleUrlChange(index, value) {
-        initialData.url[index] = value;
-        touched[`url_${index}`] = true;
-    }
+function handleUrlChange(index, value) {
+	initialData.url[index] = value;
+	touched[`url_${index}`] = true;
+}
 
-    onMount(async () => {
-        const data = new URL(location.href).searchParams;
-        const url = data.getAll("url");
-        const checkOrigin = !!data.get("checkOrigin");
-        const formFactor = data.get("formFactor");
+onMount(async () => {
+	const data = new URL(location.href).searchParams;
+	const url = data.getAll("url");
+	const checkOrigin = !!data.get("checkOrigin");
+	const formFactor = data.get("formFactor");
 
-        if (url.length) {
-            initialData.url = url;
-            initialData.checkOrigin = checkOrigin;
-            initialData.formFactor = formFactor;
-            promise = getCrux(data);
-        }
-    });
+	if (url.length) {
+		initialData.url = url;
+		initialData.checkOrigin = checkOrigin;
+		initialData.formFactor = formFactor;
+		promise = getCrux(data);
+	}
+});
 
-    async function getCrux(data) {
-        const res = await fetch("/api/getCrux", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-            },
-            body: data,
-        });
-        const content = await res.json();
-        if (res.ok) {
-            return content;
-        } else {
-            throw new Error(content);
-        }
-    }
+async function getCrux(data) {
+	const res = await fetch("/api/getCrux", {
+		method: "POST",
+		headers: {
+			Accept: "application/json",
+		},
+		body: data,
+	});
+	const content = await res.json();
+	if (res.ok) {
+		return content;
+	} else {
+		throw new Error(content);
+	}
+}
 
-    async function onSubmit(e) {
-        e.preventDefault();
+async function onSubmit(e) {
+	e.preventDefault();
 
-        isLoading = true;
-        errors = {};
+	isLoading = true;
+	errors = {};
 
-        try {
-            const data = new URLSearchParams(new FormData(e.target));
-            const result = await getCrux(data);
-            promise = Promise.resolve(result);
-            window.location.href = "/?" + data.toString();
-        } catch (error) {
-            errors.form = error.message;
-            promise = Promise.reject(error);
-        } finally {
-            isLoading = false;
-        }
-    }
+	try {
+		const data = new URLSearchParams(new FormData(e.target));
+		const result = await getCrux(data);
+		promise = Promise.resolve(result);
+		window.location.href = `/?${data.toString()}`;
+	} catch (error) {
+		errors.form = error.message;
+		promise = Promise.reject(error);
+	} finally {
+		isLoading = false;
+	}
+}
 </script>
 
 <form onsubmit={onSubmit} class="main-form">
@@ -123,8 +122,7 @@
             >
                 {#each formFactorValues as formFactor}
                     {#if formFactor === initialData.formFactor}
-                        <option value={formFactor} selected>{formFactor}</option
-                        >
+                        <option value={formFactor} selected>{formFactor}</option>
                     {:else}
                         <option value={formFactor}>{formFactor}</option>
                     {/if}
@@ -166,7 +164,7 @@
                 type="submit"
                 class="submit"
                 disabled={isLoading}
-                aria-describedby={errors.form ? "form-error" : undefined}
+                aria-describedby={errors.form ? 'form-error' : undefined}
             >
                 {#if isLoading}
                     <span class="loading-spinner" aria-hidden="true">⟳</span>
@@ -190,6 +188,10 @@
         {/if}
     </fieldset>
 </form>
+
+{#if isLoading}
+    <p class="sr-only" aria-live="polite">Loading CrUX data, please wait...</p>
+{/if}
 
 <div class="response">
     {#await promise}

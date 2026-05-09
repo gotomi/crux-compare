@@ -1,58 +1,57 @@
 <script>
-    let { data } = $props();
+let { data } = $props();
+import { TABLE_METRIC_KEYS } from "../lib/crux";
 
-    function imgIcon(url) {
-        return (
-            "https://www.google.com/s2/favicons?sz=16&domain_url=" +
-            url.replace("https://", "")
-        );
-    }
+function imgIcon(url) {
+	return (
+		"https://www.google.com/s2/favicons?sz=16&domain_url=" +
+		url.replace("https://", "")
+	);
+}
 
-    function getMetric() {
-        if (!data.metrics) return [];
-        return data.metrics.map((item) => {
-            let obj = [];
-            obj.push({
-                url: item.url,
-                minimal: item.minimalGood,
-            });
-            ["FCP", "LCP", "CLS", "TTFB", "INP"].forEach((metric) => {
-                obj.push({
-                    p75: item[metric].p75,
-                    rank: item[metric].rank,
-                });
-            });
+function getMetric() {
+	if (!data.metrics) return [];
+	return data.metrics.map((item) => {
+		const obj = [];
+		obj.push({
+			url: item.url,
+			minimal: item.minimalGood,
+		});
+		TABLE_METRIC_KEYS.forEach((metric) => {
+			obj.push({
+				p75: item[metric]?.p75,
+				rank: item[metric]?.rank,
+			});
+		});
 
-            return obj;
-        });
-    }
-    const table = [["url", "FCP", "LCP", "CLS", "TTFB", "INP"]].concat(
-        getMetric(),
-    );
+		return obj;
+	});
+}
 
-    const tableHeading = table[0];
+const table = $derived([["url", ...TABLE_METRIC_KEYS]].concat(getMetric()));
+
+const tableHeading = $derived(table[0]);
 </script>
 
 <div class="metrics-container">
-    <!-- Desktop Table View -->
     <div class="desktop-view">
         <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
                         {#each tableHeading as cell}
-                            <th
-                                >{cell === "url"
+                            <th>
+                                {cell === 'url'
                                     ? data.params.origin
-                                        ? "Origin"
-                                        : "URL"
-                                    : cell}</th
-                            >
+                                        ? 'Origin'
+                                        : 'URL'
+                                    : cell}
+                            </th>
                         {/each}
                     </tr>
                 </thead>
                 <tbody>
-                    {#each table.slice(1, table.length) as row}
+                    {#each table.slice(1) as row}
                         <tr>
                             {#each row as cell}
                                 {#if cell.p75}
@@ -65,24 +64,19 @@
                                                 class="icon"
                                                 width="16"
                                                 height="16"
-                                                alt={cell.url}
+                                                alt="Favicon"
                                             />
                                             <span
                                                 title={cell.url}
                                                 class="url-text"
-                                                >{cell.url}</span
-                                            >
+                                            >{cell.url}</span>
                                         </div>
                                         <div class="performance-bar">
                                             <div
                                                 class="bar-fill"
-                                                style={"width:" +
-                                                    cell.minimal +
-                                                    "%"}
+                                                style={'width:' + cell.minimal + '%'}
                                             ></div>
-                                            <span class="bar-text"
-                                                >{cell.minimal}%</span
-                                            >
+                                            <span class="bar-text">{cell.minimal}%</span>
                                         </div>
                                     </td>
                                 {/if}
@@ -94,9 +88,8 @@
         </div>
     </div>
 
-    <!-- Mobile Card View -->
     <div class="mobile-view">
-        {#each table.slice(1, table.length) as row, rowIndex}
+        {#each table.slice(1) as row}
             <div class="metric-card">
                 <div class="card-header">
                     <img
@@ -104,27 +97,22 @@
                         class="icon"
                         width="20"
                         height="20"
-                        alt={row[0].url}
+                        alt="Favicon"
                     />
-                    <span class="url-text" title={row[0].url}>{row[0].url}</span
-                    >
+                    <span class="url-text" title={row[0].url}>{row[0].url}</span>
                 </div>
                 <div class="performance-bar">
                     <div
                         class="bar-fill"
-                        style={"width:" + row[0].minimal + "%"}
+                        style={'width:' + row[0].minimal + '%'}
                     ></div>
                     <span class="bar-text">{row[0].minimal}% Good</span>
                 </div>
                 <div class="metrics-grid">
                     {#each row.slice(1) as metric, metricIndex}
                         <div class="metric-item">
-                            <span class="metric-name"
-                                >{tableHeading[metricIndex + 1]}</span
-                            >
-                            <span class="metric-value {metric.rank}"
-                                >{metric.p75}</span
-                            >
+                            <span class="metric-name">{tableHeading[metricIndex + 1]}</span>
+                            <span class="metric-value {metric.rank}">{metric.p75}</span>
                         </div>
                     {/each}
                 </div>
@@ -139,7 +127,6 @@
         margin: 20px 0;
     }
 
-    /* Desktop Table Styles */
     .desktop-view {
         display: block;
     }
@@ -230,7 +217,6 @@
         flex-shrink: 0;
     }
 
-    /* Metric value colors */
     .good {
         background: #2ead4b56;
         font-weight: 600;
@@ -247,7 +233,6 @@
         font-weight: 600;
     }
 
-    /* Mobile Card Styles */
     .mobile-view {
         display: none;
     }
@@ -312,7 +297,6 @@
         font-weight: 600;
     }
 
-    /* Responsive Breakpoint */
     @media (max-width: 768px) {
         .desktop-view {
             display: none;

@@ -1,31 +1,33 @@
 <script>
-    let { metric } = $props();
+let { metric } = $props();
 
-    const metricsMap = {
-        CLS: { range: [0.1, 0.25], name: "Cumulative Layout Shift" },
-        FCP: { range: [1800, 3000], name: "First Contentful Paint" },
-        LCP: { range: [2500, 4000], name: "Largest Contentful Paint" },
-        TTFB: { range: [800, 1800], name: "Time to First Byte" },
-        INP: { range: [200, 500], name: "Interaction To Next Paint" },
-        RTT: { range: [75, 275], name: "Round Trip Time" },
-    };
+const metricsMap = {
+	CLS: { range: [0.1, 0.25], name: "Cumulative Layout Shift" },
+	FCP: { range: [1800, 3000], name: "First Contentful Paint" },
+	LCP: { range: [2500, 4000], name: "Largest Contentful Paint" },
+	TTFB: { range: [800, 1800], name: "Time to First Byte" },
+	INP: { range: [200, 500], name: "Interaction To Next Paint" },
+	RTT: { range: [75, 275], name: "Round Trip Time" },
+};
 
-    const metricData = $derived(metricsMap[metric]);
-    const unit = $derived(metric === "CLS" ? "" : "ms");
-    const names = {
-        metrics: {
-            good: "Good",
-            medium: "Needs Improvement",
-            poor: "Poor",
-        },
-        rtt: {
-            good: "Low",
-            medium: "Medium",
-            poor: "High",
-        },
-    };
+const metricData = $derived(metricsMap[metric]);
+const unit = $derived(metric === "CLS" ? "" : "ms");
+const names = {
+	metrics: {
+		good: "Good",
+		medium: "Needs Improvement",
+		poor: "Poor",
+	},
+	rtt: {
+		good: "Low",
+		medium: "Medium",
+		poor: "High",
+	},
+};
 
-    const rangeNames = $derived(metric === "RTT" ? names.rtt : names.metrics);
+const rangeNames = $derived(metric === "RTT" ? names.rtt : names.metrics);
+
+const unitLabel = $derived(unit ? ` ${unit}` : "");
 </script>
 
 <div class="legend-container">
@@ -37,8 +39,8 @@
         {#if unit}
             <div
                 class="metric-badge"
-                class:good={metric === "CLS" || metric === "INP"}
-                class:time={metric !== "CLS"}
+                class:good={metric === 'CLS' || metric === 'INP'}
+                class:time={metric !== 'CLS'}
             >
                 {unit}
             </div>
@@ -48,21 +50,20 @@
         <div class="legend-item good">
             <div class="indicator"></div>
             <span class="legend-text"
-                >{rangeNames.good} &lt; {metricData.range[0]} {unit}</span
+                >{rangeNames.good} &lt; {metricData.range[0]}{unitLabel}</span
             >
         </div>
         <div class="legend-item average">
             <div class="indicator"></div>
             <span class="legend-text"
                 >{rangeNames.medium}
-                {metricData.range[0]} - {metricData.range[1]}
-                {unit}</span
+                {metricData.range[0]} - {metricData.range[1]}{unitLabel}</span
             >
         </div>
         <div class="legend-item poor">
             <div class="indicator"></div>
             <span class="legend-text"
-                >{rangeNames.poor} &gt; {metricData.range[1]} {unit}</span
+                >{rangeNames.poor} &gt; {metricData.range[1]}{unitLabel}</span
             >
         </div>
     </div>
@@ -168,7 +169,6 @@
         display: none;
     }
 
-    /* Responsive styles */
     @media (max-width: 768px) {
         .legend-container {
             padding: 16px;

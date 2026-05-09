@@ -1,8 +1,14 @@
 [build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[functions]
+  node_bundler = "esbuild"
 
 [dev]
   command = "npm run dev"
   port = 3000
   publish = "dist"
-
-
