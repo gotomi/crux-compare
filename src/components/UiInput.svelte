@@ -1,41 +1,41 @@
 <script>
-    let {
-        label,
-        name,
-        value,
-        placeholder = '',
-        remove,
-        error,
-        touched,
-        onChange,
-    } = $props();
+let {
+	label,
+	name,
+	value,
+	placeholder = "",
+	remove,
+	error,
+	touched,
+	onChange,
+} = $props();
 
-    let localError = $state('');
+let localError = $state("");
 
-    function isValidUrl(str) {
-        if (!str || str.trim().length === 0) return true;
-        try {
-            const url = new URL(str.match(/^https?:\/\//) ? str : `https://${str}`);
-            return !!url.hostname && url.hostname.includes('.');
-        } catch {
-            return false;
-        }
-    }
+function isValidUrl(str) {
+	if (!str || str.trim().length === 0) return true;
+	try {
+		const url = new URL(str.match(/^https?:\/\//) ? str : `https://${str}`);
+		return !!url.hostname && url.hostname.includes(".");
+	} catch {
+		return false;
+	}
+}
 
-    function handleInput(e) {
-        const newValue = e.target.value;
-        localError = '';
-        if (onChange) {
-            onChange(newValue);
-        }
-    }
+function handleInput(e) {
+	const newValue = e.target.value;
+	localError = "";
+	if (onChange) {
+		onChange(newValue);
+	}
+}
 
-    function handleBlur(e) {
-        const newValue = e.target.value;
-        if (newValue && !isValidUrl(newValue)) {
-            localError = 'Please enter a valid URL';
-        }
-    }
+function handleBlur(e) {
+	const newValue = e.target.value;
+	if (newValue && !isValidUrl(newValue)) {
+		localError = "Please enter a valid URL";
+	}
+}
 </script>
 
 <div class="input-group">

@@ -1,38 +1,36 @@
 <script>
-    let { data } = $props();
-    import { TABLE_METRIC_KEYS } from '../lib/crux';
+let { data } = $props();
+import { TABLE_METRIC_KEYS } from "../lib/crux";
 
-    function imgIcon(url) {
-        return (
-            'https://www.google.com/s2/favicons?sz=16&domain_url=' +
-            url.replace('https://', '')
-        );
-    }
+function imgIcon(url) {
+	return (
+		"https://www.google.com/s2/favicons?sz=16&domain_url=" +
+		url.replace("https://", "")
+	);
+}
 
-    function getMetric() {
-        if (!data.metrics) return [];
-        return data.metrics.map((item) => {
-            const obj = [];
-            obj.push({
-                url: item.url,
-                minimal: item.minimalGood,
-            });
-            TABLE_METRIC_KEYS.forEach((metric) => {
-                obj.push({
-                    p75: item[metric]?.p75,
-                    rank: item[metric]?.rank,
-                });
-            });
+function getMetric() {
+	if (!data.metrics) return [];
+	return data.metrics.map((item) => {
+		const obj = [];
+		obj.push({
+			url: item.url,
+			minimal: item.minimalGood,
+		});
+		TABLE_METRIC_KEYS.forEach((metric) => {
+			obj.push({
+				p75: item[metric]?.p75,
+				rank: item[metric]?.rank,
+			});
+		});
 
-            return obj;
-        });
-    }
+		return obj;
+	});
+}
 
-    const table = $derived(
-        [['url', ...TABLE_METRIC_KEYS]].concat(getMetric())
-    );
+const table = $derived([["url", ...TABLE_METRIC_KEYS]].concat(getMetric()));
 
-    const tableHeading = $derived(table[0]);
+const tableHeading = $derived(table[0]);
 </script>
 
 <div class="metrics-container">
