@@ -1,12 +1,12 @@
-# CrUX Netlify Dashboard
+# CrUX Compare
 
-A web-based dashboard for comparing Chrome UX Report (CrUX) performance data across multiple origins or URLs. Built with [Astro](https://astro.build), [Svelte](https://svelte.dev).
+A web-based tool for comparing Chrome UX Report (CrUX) performance data across multiple origins or URLs. Built with [Astro](https://astro.build) and [Svelte](https://svelte.dev).
 
-**Dashboard: [crux.gotomi.info](https://crux.gotomi.info)**
+**Live tool: [crux.gotomi.info](https://crux.gotomi.info)**
 
 ## Overview
 
-This tool helps you analyze and compare real-world user experience metrics from the Chrome UX Report. Compare performance data across different URLs or origins to identify performance differences, track improvements, and understand how your site performs on different device types (phone, tablet, desktop).
+CrUX Compare helps you analyze and compare real-world user experience metrics from the Chrome UX Report. Compare performance data across different URLs or origins to identify performance differences, track improvements, and understand how your site performs on different device types (phone, tablet, desktop).
 
 ### Features
 
@@ -14,7 +14,6 @@ This tool helps you analyze and compare real-world user experience metrics from 
 - **Device Type Selection** - View metrics for all form factors, phones, tablets, or desktops
 - **Flexible Analysis** - Compare full URLs or entire origins
 - **Visual Metrics Display** - Clear visualization of Core Web Vitals and other performance metrics
-- **Serverless Backend** - Powered by Netlify Functions for seamless deployment
 - **Real-time Data** - Fetch latest CrUX data directly from Google's API
 
 ## Tech Stack
@@ -29,8 +28,7 @@ This tool helps you analyze and compare real-world user experience metrics from 
 Before you begin, you'll need:
 
 1. **Node.js** - Current LTS version or later
-2. **Netlify CLI** - For local development and deployment
-3. **Chrome UX Report API Key** - Required to access CrUX data
+2. **Chrome UX Report API Key** - Required to access CrUX data
    - [Get your API Key](https://developers.google.com/web/tools/chrome-user-experience-report/api/guides/getting-started#APIKey)
    - Requires a Google Cloud project with CrUX API enabled
 
@@ -54,10 +52,10 @@ npm install
 Create a `.env.local` file in the project root with your CrUX API key:
 
 ```env
-CRUX_API_KEY=your_api_key_here
+PSIKUS=your_api_key_here
 ```
 
-Alternatively, set the environment variable in your system or deploy it in your Netlify site settings.
+Alternatively, set the environment variable in your system or in your deployment platform's environment settings.
 
 ### 4. Local Development
 
@@ -67,15 +65,9 @@ npm run dev
 
 This will start the Astro development server at `http://localhost:3000`.
 
-Alternatively, if you prefer to use Netlify's local environment:
-
-```bash
-netlify dev
-```
-
 ## Usage
 
-1. Open the dashboard in your browser (localhost:3000 or deployed URL)
+1. Open the tool in your browser (localhost:3000 or deployed URL)
 2. Enter one or more URLs to analyze in the URL input fields
 3. Choose your device type preference (All Form Factors, Phone, Tablet, or Desktop)
 4. Optionally check the "origin" box to compare origins instead of full URLs
@@ -93,9 +85,9 @@ netlify dev
 ```
 src/
 ├── pages/
-│   ├── index.astro           # Main dashboard page
+│   ├── index.astro           # Main page
 │   └── api/
-│       └── getCrux.js        # Netlify Function for CrUX API calls
+│       └── getCrux.js        # API endpoint for CrUX API calls
 ├── components/
 │   ├── CruxApp.svelte        # Main app component with form
 │   ├── Header.svelte         # Results header
@@ -118,35 +110,27 @@ src/
 
 ## Deployment
 
-### Deploy to Netlify
-
-1. Push your code to GitHub (or your Git provider)
-2. Connect your repository to Netlify
-3. Set the build command: `npm run build`
-4. Set the publish directory: `dist`
-5. Add environment variables in Netlify site settings:
-   - `CRUX_API_KEY`: Your Chrome UX Report API key
-6. Deploy!
-
-Alternatively, deploy directly using the Netlify CLI:
+Build the project for production:
 
 ```bash
-netlify deploy --prod
+npm run build
 ```
+
+The build output is in the `dist/` directory. Deploy it to any hosting platform that supports Node.js or Deno (the project uses the Deno adapter). Set the `PSIKUS` environment variable on your platform to your CrUX API key.
 
 ## How It Works
 
 1. **Frontend**: Users enter URLs and select filters through the Svelte interface
-2. **Form Submission**: Form data is sent to the Netlify Function endpoint
-3. **Backend Processing**: The `getCrux` function uses the `kruk` library to query Google's CrUX API
+2. **Form Submission**: Form data is sent to the Astro API endpoint
+3. **Backend Processing**: The `getCrux` endpoint uses the `kruk` library to query Google's CrUX API
 4. **Data Transformation**: Results are processed and organized for display
-5. **Visualization**: Metrics are displayed in an easy-to-understand format with comparisons
+5. **Visualization**: Metrics are displayed side-by-side for easy comparison
 
 ## API Reference
 
 ### CrUX Data Structure
 
-The dashboard displays the following metrics (when available):
+The tool displays the following metrics (when available):
 
 - **Core Web Vitals**:
   - LCP (Largest Contentful Paint)
