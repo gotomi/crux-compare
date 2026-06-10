@@ -3,8 +3,6 @@ dist
 
 # dependencies
 node_modules/
-.snowpack/
-
 # logs
 npm-debug.log*
 yarn-debug.log*
@@ -16,6 +14,3 @@ yarn-error.log*
 
 # macOS-specific files
 .DS_Store
-
-# Local Netlify folder
-.netlify

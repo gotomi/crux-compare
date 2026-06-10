@@ -37,8 +37,8 @@ Before you begin, you'll need:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/gotomi/crux-netlify.git
-cd crux-netlify
+git clone https://github.com/gotomi/crux-compare.git
+cd crux-compare
 ```
 
 ### 2. Install Dependencies
