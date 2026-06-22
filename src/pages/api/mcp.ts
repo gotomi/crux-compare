@@ -1,13 +1,15 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { z } from "zod";
 import { getReports } from "kruk";
+import { z } from "zod";
+import { getExpectedToken, validateAuth } from "../../lib/auth";
 import {
-	validateUrls,
-	validateFormFactor,
 	groupByMetricAndSort,
 	MAX_URLS,
+	validateFormFactor,
+	validateUrls,
 } from "../../lib/crux";
+import { rateLimit } from "../../lib/rateLimit";
 
 function createServer(): McpServer {
 	const server = new McpServer({
@@ -105,30 +107,44 @@ function createServer(): McpServer {
 	return server;
 }
 
-const CORS_HEADERS: Record<string, string> = {
-	"Access-Control-Allow-Origin": "*",
-	"Access-Control-Allow-Methods": "POST, GET, DELETE, OPTIONS",
-	"Access-Control-Allow-Headers": "Content-Type, Accept, Mcp-Session-Id",
-};
-
-function addCorsHeaders(response: Response): Response {
-	const headers = new Headers(response.headers);
-	for (const [key, value] of Object.entries(CORS_HEADERS)) {
-		headers.set(key, value);
-	}
-
-	return new Response(response.body, {
-		status: response.status,
-		statusText: response.statusText,
-		headers,
-	});
-}
-
 export const ALL = async ({
 	request,
 }: {
 	request: Request;
 }): Promise<Response> => {
+	const expectedToken = getExpectedToken();
+	if (!expectedToken) {
+		return new Response(
+			JSON.stringify({
+				error:
+					"Server is not secured: MCP_TOKEN environment variable is not configured",
+			}),
+			{
+				status: 500,
+				headers: { "Content-Type": "application/json" },
+			},
+		);
+	}
+
+	const auth = validateAuth(request);
+	if (!auth.valid) {
+		return new Response(JSON.stringify({ error: "Unauthorized" }), {
+			status: 401,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+
+	const rl = rateLimit(auth.identity);
+	if (!rl.allowed) {
+		return new Response(JSON.stringify({ error: "Too Many Requests" }), {
+			status: 429,
+			headers: {
+				"Content-Type": "application/json",
+				"Retry-After": String(Math.ceil(rl.retryAfterMs / 1000)),
+			},
+		});
+	}
+
 	let server: McpServer | undefined;
 	try {
 		server = createServer();
@@ -143,7 +159,7 @@ export const ALL = async ({
 		await server.close();
 		server = undefined;
 
-		return addCorsHeaders(res);
+		return res;
 	} catch (error) {
 		console.error("MCP transport error:", error);
 		const message =
@@ -154,15 +170,9 @@ export const ALL = async ({
 			server = undefined;
 		}
 
-		return addCorsHeaders(
-			new Response(JSON.stringify({ error: message }), {
-				status: 500,
-				headers: { "Content-Type": "application/json" },
-			}),
-		);
+		return new Response(JSON.stringify({ error: message }), {
+			status: 500,
+			headers: { "Content-Type": "application/json" },
+		});
 	}
-};
-
-export const OPTIONS = async (): Promise<Response> => {
-	return addCorsHeaders(new Response(null, { status: 204 }));
 };
