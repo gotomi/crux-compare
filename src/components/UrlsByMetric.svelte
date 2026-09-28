@@ -10,7 +10,7 @@ function imgIcon(url) {
 	);
 }
 
-const TREND_WEEKS = 12;
+const TREND_WEEKS = 4;
 const TREND_THRESHOLD = 0.02;
 
 // p75 change vs TREND_WEEKS earlier; lower is better for every metric
@@ -40,10 +40,11 @@ function trendOf(p75s) {
 	}
 
 	const percent = Math.abs(Math.round(delta * 100));
+	const weeks = `vs ${TREND_WEEKS} week${TREND_WEEKS === 1 ? "" : "s"} earlier`;
 	return {
 		dir: delta < 0 ? "better" : "worse",
 		label: `${delta < 0 ? "▼" : "▲"}${percent}%`,
-		title: `${percent}% ${delta < 0 ? "better" : "worse"} vs 12 weeks earlier`,
+		title: `${percent}% ${delta < 0 ? "better" : "worse"} ${weeks}`,
 	};
 }
 

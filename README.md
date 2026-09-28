@@ -86,7 +86,7 @@ This will start the Astro development server at `http://localhost:4321`.
 
 When the **history** checkbox is enabled, the tool queries the [CrUX History API](https://developers.google.com/web/tools/chrome-user-experience-report/api/guides/history) and shows how each metric evolved over the last **25 weekly collection periods** (~6 months). Each data point covers a 28-day collection window.
 
-- **Summary table** - shows the latest period's values plus a trend arrow (`▼3%` = better, `▲5%` = worse) comparing the latest p75 with ~12 weeks earlier. The header date range reflects the latest 28-day collection period, followed by the trend length (e.g. `📅 30/08/2026 - 26/09/2026 · 25-week trend`)
+- **Summary table** - shows the latest period's values plus a month-over-month trend arrow (`▼3%` = better, `▲5%` = worse) comparing the latest p75 with the value from 4 weeks earlier (hover the arrow for details). The header date range reflects the latest 28-day collection period, followed by the trend length (e.g. `📅 30/08/2026 - 26/09/2026 · 25-week trend`)
 - **Trend charts** - each metric card shows a sparkline of the weekly p75. Line segments and points are colored by each week's assessment (good / needs improvement / poor), with a weekly rank strip underneath
 - **Interactive points** - hover or focus a point to see the exact date, p75 value, and rank; click to pin the tooltip (useful on touch screens), click again or press Escape to unpin
 - **Min/max scale** - each chart shows the p75 range and the trend's date span
