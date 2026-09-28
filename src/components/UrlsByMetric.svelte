@@ -300,9 +300,24 @@ const tableHeading = $derived(table[0]);
     }
 
     .trend {
-        font-size: 0.75em;
+        display: inline-block;
+        font-size: 0.7em;
         margin-left: 4px;
-        opacity: 0.85;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-weight: 700;
+        vertical-align: middle;
+    }
+
+    /* badge carries its own background so it reads on all three cell colors */
+    .trend.better {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .trend.worse {
+        background: #f8d7da;
+        color: #721c24;
     }
 
     .mobile-view {
