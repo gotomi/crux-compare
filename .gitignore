@@ -1,6 +1,9 @@
 # build output
 dist
 
+# astro generated
+.astro/
+
 # dependencies
 node_modules/
 # logs
