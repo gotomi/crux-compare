@@ -319,8 +319,9 @@ export function convertHistoryData(
 		history: true,
 		weeks: dates.length,
 		dates,
+		// latest 28-day collection period — the window the table values are computed over
 		collectionPeriod: {
-			firstDate: periods[0]?.firstDate,
+			firstDate: periods.at(-1)?.firstDate,
 			lastDate: periods.at(-1)?.lastDate,
 		},
 	};

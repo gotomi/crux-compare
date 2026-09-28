@@ -27,5 +27,5 @@ const weeks = $derived(params?.history ? params?.weeks : 0);
 <p>
     <strong>{deviceLabel}</strong>
     🌐 <strong>{urlType}</strong> 📅 {firstDay} - {lastDay}{#if weeks}&nbsp;·
-        &nbsp;{weeks} weeks{/if}
+        &nbsp;{weeks}-week trend{/if}
 </p>

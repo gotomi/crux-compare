@@ -27,6 +27,19 @@ function labelFor(index) {
 	return dates[index] ?? `week ${index + 1}`;
 }
 
+// "2026-04-11" -> "11/04/26"
+function shortDate(iso) {
+	const [year, month, day] = iso.split("-");
+	return `${day}/${month}/${year.slice(2)}`;
+}
+
+const trendRange = $derived.by(() => {
+	const first = dates[0];
+	const last = dates.at(-1);
+	if (!first || !last) return `${post.p75s?.length ?? 0} weeks`;
+	return `${shortDate(first)} – ${shortDate(last)}`;
+});
+
 function titleFor(index, value) {
 	const rankValue = post.ranks?.[index];
 	const formatted =
@@ -130,7 +143,7 @@ const trend = $derived.by(() => {
             </div>
             <div class="scale-row">
                 <span>min {trend.min}{unit ? ` ${unit}` : ""}</span>
-                <span>{post.p75s?.length ?? 0} weeks</span>
+                <span>{trendRange}</span>
                 <span>max {trend.max}{unit ? ` ${unit}` : ""}</span>
             </div>
         </div>
