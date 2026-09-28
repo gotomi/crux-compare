@@ -19,6 +19,13 @@ const rankColors = {
 
 const unit = $derived(metric === "CLS" ? "" : "ms");
 
+let hoverIndex = $state(null);
+let pinnedIndex = $state(null);
+
+function togglePin(index) {
+	pinnedIndex = pinnedIndex === index ? null : index;
+}
+
 const W = 300;
 const H = 44;
 const PAD = 3;
@@ -76,7 +83,24 @@ const trend = $derived.by(() => {
 		});
 	}
 
-	return { segments, min, max };
+	// percent coordinates: the svg is stretched over the plot box (H is 1:1)
+	const dots = points.map((p) => ({
+		index: p.index,
+		xp: (x(p.index) / W) * 100,
+		yp: (y(p.value) / H) * 100,
+		color: rankColors[post.ranks?.[p.index]] ?? "#adb5bd",
+		rank: post.ranks?.[p.index] ?? "n/a",
+		value: p.value,
+		label: labelFor(p.index),
+	}));
+
+	return { segments, dots, min, max };
+});
+
+const activeDot = $derived.by(() => {
+	const target = hoverIndex ?? pinnedIndex;
+	if (target === null) return null;
+	return trend?.dots?.find((d) => d.index === target) ?? null;
 });
 </script>
 
@@ -115,24 +139,57 @@ const trend = $derived.by(() => {
 
     {#if trend}
         <div class="trend">
-            <svg
-                viewBox={`0 0 ${W} ${H}`}
-                preserveAspectRatio="none"
-                role="img"
-                aria-label={`${metric} p75 trend for ${post.url}`}
-            >
-                {#each trend.segments as segment}
-                    <path
-                        d={segment.d}
-                        stroke={segment.color}
-                        stroke-width="2"
-                        fill="none"
-                        vector-effect="non-scaling-stroke"
-                    >
-                        <title>{segment.title}</title>
-                    </path>
+            <div class="plot">
+                <svg
+                    viewBox={`0 0 ${W} ${H}`}
+                    preserveAspectRatio="none"
+                    role="img"
+                    aria-label={`${metric} p75 trend for ${post.url}`}
+                >
+                    {#each trend.segments as segment}
+                        <path
+                            d={segment.d}
+                            stroke={segment.color}
+                            stroke-width="2"
+                            fill="none"
+                            vector-effect="non-scaling-stroke"
+                        >
+                            <title>{segment.title}</title>
+                        </path>
+                    {/each}
+                </svg>
+                {#each trend.dots as dot (dot.index)}
+                    <button
+                        type="button"
+                        class="dot"
+                        class:selected={pinnedIndex === dot.index}
+                        style={`left:${dot.xp}%;top:${dot.yp}%;--c:${dot.color}`}
+                        aria-label={`${dot.label}: ${dot.value}${unit ? ` ${unit}` : ""}, ${dot.rank}`}
+                        onmouseenter={() => (hoverIndex = dot.index)}
+                        onfocus={() => (hoverIndex = dot.index)}
+                        onmouseleave={() => (hoverIndex = null)}
+                        onblur={() => (hoverIndex = null)}
+                        onclick={() => togglePin(dot.index)}
+                        onkeydown={(e) => {
+                            if (e.key === "Escape") pinnedIndex = null;
+                        }}
+                    ></button>
                 {/each}
-            </svg>
+                {#if activeDot}
+                    <div
+                        class="point-tooltip"
+                        style={`left:${Math.min(Math.max(activeDot.xp, 15), 85)}%`}
+                    >
+                        <span class="pt-date">{activeDot.label}</span>
+                        <span class="pt-value"
+                            >{activeDot.value}{unit ? ` ${unit}` : ""}</span
+                        >
+                        <span class="pt-rank {activeDot.rank}"
+                            >{activeDot.rank}</span
+                        >
+                    </div>
+                {/if}
+            </div>
             <div class="rank-strip">
                 {#each post.ranks ?? [] as rankValue, index}
                     <div
@@ -280,12 +337,97 @@ const trend = $derived.by(() => {
         padding-left: 0;
     }
 
+    .plot {
+        position: relative;
+    }
+
     .trend svg {
         display: block;
         width: 100%;
         height: 44px;
         background: #f8f9fa;
         border-radius: 2px;
+    }
+
+    .dot {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        transform: translate(-50%, -50%);
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
+
+    .dot::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        background: var(--c, #adb5bd);
+        box-shadow: 0 0 0 1.5px #fff;
+        transition: inset 0.1s ease;
+    }
+
+    .dot:hover::after {
+        inset: 2.5px;
+    }
+
+    .dot.selected::after {
+        inset: 2px;
+        box-shadow: 0 0 0 2px #2c3e50;
+    }
+
+    .point-tooltip {
+        position: absolute;
+        z-index: 5;
+        transform: translate(-50%, -100%);
+        margin-top: -10px;
+        background: #2c3e50;
+        color: #fff;
+        border-radius: 4px;
+        padding: 6px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        font-size: 0.75rem;
+        line-height: 1.3;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .pt-date {
+        opacity: 0.75;
+        font-size: 0.65rem;
+    }
+
+    .pt-value {
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    .pt-rank {
+        text-transform: capitalize;
+        font-size: 0.7rem;
+    }
+
+    .pt-rank.good {
+        color: #7ee2a0;
+    }
+
+    .pt-rank.average {
+        color: #ffd66e;
+    }
+
+    .pt-rank.poor {
+        color: #ff9ba6;
+    }
+
+    .pt-rank.n\/a {
+        color: #dee2e6;
     }
 
     .rank-strip {
@@ -354,6 +496,19 @@ const trend = $derived.by(() => {
         .metric-value {
             font-size: 0.875rem;
             padding: 4px 8px;
+        }
+
+        .dot {
+            width: 19px;
+            height: 19px;
+        }
+
+        .dot::after {
+            inset: 6px;
+        }
+
+        .dot.selected::after {
+            inset: 4px;
         }
     }
 
