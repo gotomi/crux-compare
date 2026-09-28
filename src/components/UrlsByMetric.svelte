@@ -10,7 +10,7 @@ function imgIcon(url) {
 	);
 }
 
-const TREND_WEEKS = 4;
+const TREND_WEEKS = 1;
 const TREND_THRESHOLD = 0.02;
 
 // p75 change vs TREND_WEEKS earlier; lower is better for every metric
