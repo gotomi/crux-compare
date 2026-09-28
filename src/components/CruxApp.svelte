@@ -1,10 +1,9 @@
 <script>
 import { onMount } from "svelte";
 import Header from "./Header.svelte";
-import UrlsByMetric from "./UrlsByMetric.svelte";
 import MetricsByUrl from "./MetricsByUrl.svelte";
-
 import UiInput from "./UiInput.svelte";
+import UrlsByMetric from "./UrlsByMetric.svelte";
 
 const formFactorValues = ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"];
 
@@ -12,6 +11,7 @@ let initialData = $state({
 	url: [""],
 	checkOrigin: true,
 	formFactor: "PHONE",
+	history: false,
 });
 
 let promise = $state(Promise.reject(new Error("")));
@@ -50,11 +50,13 @@ onMount(async () => {
 	const url = data.getAll("url");
 	const checkOrigin = !!data.get("checkOrigin");
 	const formFactor = data.get("formFactor");
+	const history = !!data.get("history");
 
 	if (url.length) {
 		initialData.url = url;
 		initialData.checkOrigin = checkOrigin;
 		initialData.formFactor = formFactor;
+		initialData.history = history;
 		promise = getCrux(data);
 	}
 });
@@ -110,6 +112,20 @@ async function onSubmit(e) {
             </label>
             <div id="origin-help" class="sr-only">
                 Check this to compare origins instead of full URLs
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="checkbox-label">
+                <input
+                    type="checkbox"
+                    name="history"
+                    checked={initialData.history}
+                    aria-describedby="history-help"
+                />
+                <span>history</span>
+            </label>
+            <div id="history-help" class="sr-only">
+                Check this to show 25-week trends from the CrUX History API
             </div>
         </div>
         <div class="control-group">

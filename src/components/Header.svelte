@@ -21,9 +21,11 @@ const lastDay = $derived.by(() => {
 });
 
 const deviceLabel = $derived(params?.formFactor || "ALL DEVICES");
+const weeks = $derived(params?.history ? params?.weeks : 0);
 </script>
 
 <p>
     <strong>{deviceLabel}</strong>
-    🌐 <strong>{urlType}</strong> 📅 {firstDay} - {lastDay}
+    🌐 <strong>{urlType}</strong> 📅 {firstDay} - {lastDay}{#if weeks}&nbsp;·
+        &nbsp;{weeks}-week trend{/if}
 </p>

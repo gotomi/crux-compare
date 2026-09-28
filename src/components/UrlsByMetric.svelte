@@ -1,12 +1,51 @@
 <script>
 let { data } = $props();
-import { TABLE_METRIC_KEYS, CORE_WEB_VITALS } from "../lib/crux";
+
+import { CORE_WEB_VITALS, TABLE_METRIC_KEYS } from "../lib/crux";
 
 function imgIcon(url) {
 	return (
 		"https://www.google.com/s2/favicons?sz=16&domain_url=" +
 		url.replace("https://", "")
 	);
+}
+
+const TREND_WEEKS = 1;
+const TREND_THRESHOLD = 0.02;
+
+// p75 change vs TREND_WEEKS earlier; lower is better for every metric
+function trendOf(p75s) {
+	if (!Array.isArray(p75s) || p75s.length <= TREND_WEEKS) return null;
+
+	let lastIndex = -1;
+	for (let i = p75s.length - 1; i >= 0; i--) {
+		if (typeof p75s[i] === "number") {
+			lastIndex = i;
+			break;
+		}
+	}
+
+	let prevIndex = lastIndex - TREND_WEEKS;
+	if (lastIndex < 0 || prevIndex < 0) return null;
+	while (prevIndex >= 0 && typeof p75s[prevIndex] !== "number") {
+		prevIndex--;
+	}
+	if (prevIndex < 0) return null;
+
+	const last = p75s[lastIndex];
+	const prev = p75s[prevIndex];
+	const delta = prev === 0 ? 0 : (last - prev) / prev;
+	if (!Number.isFinite(delta) || Math.abs(delta) < TREND_THRESHOLD) {
+		return null;
+	}
+
+	const percent = Math.abs(Math.round(delta * 100));
+	const weeks = `vs ${TREND_WEEKS} week${TREND_WEEKS === 1 ? "" : "s"} earlier`;
+	return {
+		dir: delta < 0 ? "better" : "worse",
+		label: `${delta < 0 ? "▼" : "▲"}${percent}%`,
+		title: `${percent}% ${delta < 0 ? "better" : "worse"} ${weeks}`,
+	};
 }
 
 function getMetric() {
@@ -21,6 +60,7 @@ function getMetric() {
 			obj.push({
 				p75: item[metric]?.p75,
 				rank: item[metric]?.rank,
+				trend: trendOf(item[metric]?.p75s),
 			});
 		});
 
@@ -54,8 +94,15 @@ const tableHeading = $derived(table[0]);
                     {#each table.slice(1) as row}
                         <tr>
                             {#each row as cell}
-                                {#if cell.p75}
-                                    <td class={cell.rank}>{cell.p75}</td>
+                                {#if "p75" in cell}
+                                    <td class={cell.rank}>
+                                        {cell.p75}{#if cell.trend}
+                                            <span
+                                                class="trend {cell.trend.dir}"
+                                                title={cell.trend.title}
+                                            >{cell.trend.label}</span
+                                            >{/if}
+                                    </td>
                                 {:else}
                                     <td class="url-cell">
                                         <div class="url-info">
@@ -116,7 +163,14 @@ const tableHeading = $derived(table[0]);
                                 class="metric-name"
                                 class:core-vital={CORE_WEB_VITALS.includes(metricKey)}
                             >{metricKey}</span>
-                            <span class="metric-value {metric.rank}">{metric.p75}</span>
+                            <span class="metric-value {metric.rank}"
+                                >{metric.p75}{#if metric.trend}
+                                    <span
+                                        class="trend {metric.trend.dir}"
+                                        title={metric.trend.title}
+                                    >{metric.trend.label}</span
+                                    >{/if}</span
+                            >
                         </div>
                     {/each}
                 </div>
@@ -243,6 +297,12 @@ const tableHeading = $derived(table[0]);
         background: #dc3545;
         color: #fff;
         font-weight: 600;
+    }
+
+    .trend {
+        font-size: 0.75em;
+        margin-left: 4px;
+        opacity: 0.85;
     }
 
     .mobile-view {

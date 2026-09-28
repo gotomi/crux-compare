@@ -1,9 +1,10 @@
 import { getReports } from "kruk";
 import {
-	validateUrls,
-	validateFormFactor,
+	convertHistoryData,
 	groupByMetricAndSort,
 	sanitizeError,
+	validateFormFactor,
+	validateUrls,
 } from "../../lib/crux";
 
 const corsHeaders = {
@@ -24,6 +25,7 @@ export async function POST({ request }) {
 		const body = await request.text();
 		const params = new URLSearchParams(body);
 		const checkOrigin = params.get("checkOrigin") !== null;
+		const history = params.get("history") !== null;
 
 		const formFactor = validateFormFactor(params.get("formFactor"));
 		const rawUrls = params
@@ -47,9 +49,28 @@ export async function POST({ request }) {
 			effectiveConnectionType: "",
 			formFactor: formFactor,
 			origin: checkOrigin,
+			history,
 		};
 
-		const cruxData = await getReports(urls, API_KEY, queryParams);
+		const cruxRaw = await getReports(urls, API_KEY, queryParams);
+
+		if (history) {
+			const cruxData = convertHistoryData(cruxRaw);
+			const cruxDataByMetric = groupByMetricAndSort(cruxData.metrics);
+
+			return new Response(
+				JSON.stringify({
+					cruxData,
+					byMetric: { params: cruxData.params, metrics: cruxDataByMetric },
+				}),
+				{
+					status: 200,
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+				},
+			);
+		}
+
+		const cruxData = cruxRaw;
 		const cruxDataByMetric = groupByMetricAndSort(cruxData.metrics);
 
 		return new Response(
