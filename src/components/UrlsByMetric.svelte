@@ -1,7 +1,7 @@
 <script>
-let { data } = $props();
+let { data, trendWeeks = $bindable(1) } = $props();
 
-import { CORE_WEB_VITALS, TABLE_METRIC_KEYS } from "../lib/crux";
+import { CORE_WEB_VITALS, periodRange, TABLE_METRIC_KEYS } from "../lib/crux";
 
 function imgIcon(url) {
 	return (
@@ -10,12 +10,11 @@ function imgIcon(url) {
 	);
 }
 
-const TREND_WEEKS = 1;
 const TREND_THRESHOLD = 0.02;
 
-// p75 change vs TREND_WEEKS earlier; lower is better for every metric
+// p75 change vs trendWeeks earlier; lower is better for every metric
 function trendOf(p75s) {
-	if (!Array.isArray(p75s) || p75s.length <= TREND_WEEKS) return null;
+	if (!Array.isArray(p75s) || p75s.length <= trendWeeks) return null;
 
 	let lastIndex = -1;
 	for (let i = p75s.length - 1; i >= 0; i--) {
@@ -25,7 +24,7 @@ function trendOf(p75s) {
 		}
 	}
 
-	let prevIndex = lastIndex - TREND_WEEKS;
+	let prevIndex = lastIndex - trendWeeks;
 	if (lastIndex < 0 || prevIndex < 0) return null;
 	while (prevIndex >= 0 && typeof p75s[prevIndex] !== "number") {
 		prevIndex--;
@@ -40,11 +39,13 @@ function trendOf(p75s) {
 	}
 
 	const percent = Math.abs(Math.round(delta * 100));
-	const weeks = `vs ${TREND_WEEKS} week${TREND_WEEKS === 1 ? "" : "s"} earlier`;
+	const weeks = `vs ${trendWeeks} week${trendWeeks === 1 ? "" : "s"} earlier`;
+	// params.dates holds the end date of each weekly collection period, aligned with the series
+	const range = periodRange(data.params?.dates?.[prevIndex]);
 	return {
 		dir: delta < 0 ? "better" : "worse",
 		label: `${delta < 0 ? "▼" : "▲"}${percent}%`,
-		title: `${percent}% ${delta < 0 ? "better" : "worse"} ${weeks}`,
+		title: `${percent}% ${delta < 0 ? "better" : "worse"}${range ? ` (${range})` : ` ${weeks}`}`,
 	};
 }
 

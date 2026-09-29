@@ -7,7 +7,7 @@ A web tool for comparing Chrome UX Report (CrUX) field data across multiple orig
 ## Features
 
 - **Multi-URL comparison** — analyze up to 10 origins/URLs side by side, sorted by Core Web Vitals performance
-- **Overview tab** — the classic CrUX metrics (LCP, CLS, INP, TTFB, FCP, RTT) as a summary table with week-over-week trend badges plus per-metric cards with histogram bars
+- **Overview tab** — the classic CrUX metrics (LCP, CLS, INP, TTFB, FCP, RTT) as a summary table with trend badges against a selectable comparison week (default: 1 week earlier) plus per-metric cards with histogram bars
 - **Advanced tab** — kruk 0.5.0-beta's newer CrUX metrics:
   - **Navigation Types** — how page loads start (navigate, reload, back/forward incl. bfcache, prerender) as 100% stacked bars
   - **Form Factors** — desktop / phone / tablet share of page loads (available when the device filter is `ALL_FORM_FACTORS`)

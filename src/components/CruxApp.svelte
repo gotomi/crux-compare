@@ -3,6 +3,7 @@ import { onMount } from "svelte";
 import AdvancedMetrics from "./AdvancedMetrics.svelte";
 import Header from "./Header.svelte";
 import MetricsByUrl from "./MetricsByUrl.svelte";
+import TrendPicker from "./TrendPicker.svelte";
 import UiInput from "./UiInput.svelte";
 import UrlsByMetric from "./UrlsByMetric.svelte";
 
@@ -20,6 +21,7 @@ let isLoading = $state(false);
 let errors = $state({});
 let touched = $state({});
 let view = $state("overview");
+let trendWeeks = $state(1);
 
 function hasAdvanced(content) {
 	return (
@@ -247,7 +249,16 @@ async function onSubmit(e) {
         {#if content.cruxData.error}
             <p class="error">{content.cruxData.error}</p>
         {:else}
-            <Header data={content.cruxData} />
+            <div class="result-header">
+                <Header data={content.cruxData} />
+                {#if activeView(content) === "overview" &&
+                    content.cruxData.params?.dates?.length > 1}
+                    <TrendPicker
+                        dates={content.cruxData.params.dates}
+                        bind:weeks={trendWeeks}
+                    />
+                {/if}
+            </div>
             {#if hasAdvanced(content)}
                 <div class="view-tabs" role="tablist" aria-label="Result views">
                     <button
@@ -292,7 +303,10 @@ async function onSubmit(e) {
                         ? "tab-overview"
                         : undefined}
                 >
-                    <UrlsByMetric data={content.cruxData} />
+                    <UrlsByMetric
+                        data={content.cruxData}
+                        bind:trendWeeks={trendWeeks}
+                    />
                     <MetricsByUrl data={content.byMetric} />
                 </div>
             {/if}
@@ -303,6 +317,14 @@ async function onSubmit(e) {
 </div>
 
 <style>
+    .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
     .view-tabs {
         display: inline-flex;
         gap: 2px;

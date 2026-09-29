@@ -277,6 +277,17 @@ function isoDate(date: DateParts): string {
 	return `${date.year}-${pad(date.month)}-${pad(date.day)}`;
 }
 
+// each weekly data point covers a 28-day collection period ending on its date
+export function periodRange(iso: string | undefined): string {
+	if (!iso) return "";
+	const fmt = (date: Date) =>
+		date.toLocaleDateString("en-GB", { dateStyle: "short", timeZone: "UTC" });
+	const end = new Date(`${iso}T00:00:00Z`);
+	const start = new Date(end);
+	start.setUTCDate(start.getUTCDate() - 27);
+	return `${fmt(start)} - ${fmt(end)}`;
+}
+
 const MISSING_METRIC: MetricHistory = {
 	histogram: [],
 	p75: "-",
