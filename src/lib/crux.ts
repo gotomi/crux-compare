@@ -57,6 +57,45 @@ const RAW_METRIC_KEYS: Record<string, MetricKey> = {
 	round_trip_time: "RTT",
 };
 
+// kruk 0.5.0-beta advanced metrics: fraction distributions (no p75, no thresholds)
+export const FRACTION_METRIC_KEYS = [
+	"NAV_TYPES",
+	"FORM_FACTORS",
+	"LCP-RES",
+] as const;
+
+// LCP image phase breakdown: independent p75s in ms, no thresholds
+export const SUBPART_METRIC_KEYS = [
+	"LCP-TTFB",
+	"LCP-LD",
+	"LCP-LDur",
+	"LCP-RD",
+] as const;
+
+export const ADVANCED_METRIC_KEYS = [
+	...FRACTION_METRIC_KEYS,
+	...SUBPART_METRIC_KEYS,
+] as const;
+
+export type AdvancedMetricKey = (typeof ADVANCED_METRIC_KEYS)[number];
+
+const ADVANCED_RAW_NAMES: Record<string, string> = {
+	navigation_types: "NAV_TYPES",
+	form_factors: "FORM_FACTORS",
+	largest_contentful_paint_resource_type: "LCP-RES",
+	largest_contentful_paint_image_time_to_first_byte: "LCP-TTFB",
+	largest_contentful_paint_image_resource_load_delay: "LCP-LD",
+	largest_contentful_paint_image_resource_load_duration: "LCP-LDur",
+	largest_contentful_paint_image_element_render_delay: "LCP-RD",
+};
+
+// metric names sent to the CrUX API: the classic 6 plus the advanced 7
+// (kruk falls back to just the classic 6 when metrics is omitted)
+export const REQUEST_METRIC_NAMES: string[] = [
+	...Object.keys(RAW_METRIC_KEYS),
+	...Object.keys(ADVANCED_RAW_NAMES),
+];
+
 export function metricRank(
 	value: number,
 	metric: MetricKey,
@@ -358,4 +397,70 @@ export function convertHistoryData(
 	metrics.sort((a, b) => b.minimalGood - a.minimalGood);
 
 	return { params, metrics };
+}
+
+// --- kruk 0.5.0-beta advanced metrics ----------------------------------------
+
+// fraction distribution in percents summing to ~100 (kruk converts the 0..1 API values)
+export interface FractionMetric {
+	fractions: Record<string, number>;
+}
+
+// LCP image subpart: independent p75 in milliseconds, no good/average/poor thresholds
+export interface SubpartMetric {
+	p75: number;
+}
+
+export type AdvancedMetric = FractionMetric | SubpartMetric;
+
+export interface AdvancedSite {
+	url: string;
+	NAV_TYPES?: FractionMetric;
+	FORM_FACTORS?: FractionMetric;
+	"LCP-RES"?: FractionMetric;
+	"LCP-TTFB"?: SubpartMetric;
+	"LCP-LD"?: SubpartMetric;
+	"LCP-LDur"?: SubpartMetric;
+	"LCP-RD"?: SubpartMetric;
+}
+
+export type AdvancedGroupedMetrics = Partial<
+	Record<AdvancedMetricKey, Array<{ url: string } & AdvancedMetric>>
+>;
+
+// kruk already sorts sites by minimalGood; keep that order so the advanced view
+// lists URLs in the same sequence as the overview table
+export function groupAdvancedByMetric(
+	data: AdvancedSite[] | null | undefined,
+): AdvancedGroupedMetrics {
+	if (!data) return {};
+
+	const grouped: AdvancedGroupedMetrics = {};
+	for (const key of ADVANCED_METRIC_KEYS) {
+		grouped[key] = [];
+	}
+
+	for (const site of data) {
+		for (const key of ADVANCED_METRIC_KEYS) {
+			const metric = site[key];
+			if (!metric) continue;
+
+			if ("fractions" in metric) {
+				if (metric.fractions && Object.keys(metric.fractions).length > 0) {
+					grouped[key]?.push({ url: site.url, fractions: metric.fractions });
+				}
+			} else if (typeof metric.p75 === "number") {
+				grouped[key]?.push({ url: site.url, p75: metric.p75 });
+			}
+		}
+	}
+
+	// drop empty keys so the UI can hide those sections entirely
+	for (const key of ADVANCED_METRIC_KEYS) {
+		if (grouped[key]?.length === 0) {
+			delete grouped[key];
+		}
+	}
+
+	return grouped;
 }

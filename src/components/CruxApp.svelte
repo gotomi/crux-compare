@@ -1,5 +1,6 @@
 <script>
 import { onMount } from "svelte";
+import AdvancedMetrics from "./AdvancedMetrics.svelte";
 import Header from "./Header.svelte";
 import MetricsByUrl from "./MetricsByUrl.svelte";
 import UiInput from "./UiInput.svelte";
@@ -18,6 +19,29 @@ let promise = $state(Promise.reject(new Error("")));
 let isLoading = $state(false);
 let errors = $state({});
 let touched = $state({});
+let view = $state("overview");
+
+function hasAdvanced(content) {
+	return (
+		!!content?.advanced?.metrics &&
+		Object.keys(content.advanced.metrics).length > 0
+	);
+}
+
+function activeView(content) {
+	return view === "advanced" && hasAdvanced(content) ? "advanced" : "overview";
+}
+
+function setView(next) {
+	view = next;
+	const url = new URL(location.href);
+	if (next === "advanced") {
+		url.searchParams.set("view", "advanced");
+	} else {
+		url.searchParams.delete("view");
+	}
+	history.replaceState(null, "", url);
+}
 
 function addItem(e) {
 	e.preventDefault();
@@ -51,6 +75,10 @@ onMount(async () => {
 	const checkOrigin = !!data.get("checkOrigin");
 	const formFactor = data.get("formFactor");
 	const history = !!data.get("history");
+
+	if (data.get("view") === "advanced") {
+		view = "advanced";
+	}
 
 	if (url.length) {
 		initialData.url = url;
@@ -98,6 +126,7 @@ async function onSubmit(e) {
 </script>
 
 <form onsubmit={onSubmit} class="main-form">
+    <input type="hidden" name="view" value={view} />
     <fieldset class="form-controls">
         <legend class="sr-only">Form Settings</legend>
         <div class="control-group">
@@ -219,8 +248,54 @@ async function onSubmit(e) {
             <p class="error">{content.cruxData.error}</p>
         {:else}
             <Header data={content.cruxData} />
-            <UrlsByMetric data={content.cruxData} />
-            <MetricsByUrl data={content.byMetric} />
+            {#if hasAdvanced(content)}
+                <div class="view-tabs" role="tablist" aria-label="Result views">
+                    <button
+                        type="button"
+                        role="tab"
+                        id="tab-overview"
+                        aria-selected={activeView(content) === "overview"}
+                        aria-controls="panel-result"
+                        class:active={activeView(content) === "overview"}
+                        onclick={() => setView("overview")}
+                    >
+                        Overview
+                    </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        id="tab-advanced"
+                        aria-selected={activeView(content) === "advanced"}
+                        aria-controls="panel-result"
+                        class:active={activeView(content) === "advanced"}
+                        onclick={() => setView("advanced")}
+                    >
+                        Advanced
+                    </button>
+                </div>
+            {/if}
+            {#if activeView(content) === "advanced"}
+                <div
+                    class="result-panel"
+                    id="panel-result"
+                    role="tabpanel"
+                    aria-labelledby="tab-advanced"
+                >
+                    <AdvancedMetrics data={content.advanced} />
+                </div>
+            {:else}
+                <div
+                    class="result-panel"
+                    id="panel-result"
+                    role="tabpanel"
+                    aria-labelledby={hasAdvanced(content)
+                        ? "tab-overview"
+                        : undefined}
+                >
+                    <UrlsByMetric data={content.cruxData} />
+                    <MetricsByUrl data={content.byMetric} />
+                </div>
+            {/if}
         {/if}
     {:catch error}
         <p class="error">{error.message}</p>
@@ -228,6 +303,42 @@ async function onSubmit(e) {
 </div>
 
 <style>
+    .view-tabs {
+        display: inline-flex;
+        gap: 2px;
+        margin: 4px 0 12px;
+        background: #e9ecef;
+        border-radius: 4px;
+        padding: 3px;
+    }
+
+    .view-tabs button {
+        border: none;
+        background: transparent;
+        padding: 8px 18px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .view-tabs button:hover:not(.active) {
+        background: #dee2e6;
+    }
+
+    .view-tabs button.active {
+        background: #007bff;
+        color: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .view-tabs button:focus-visible {
+        outline: 2px solid #007bff;
+        outline-offset: 2px;
+    }
+
     .main-form {
         padding: var(--padding);
         padding-block: 20px;

@@ -1,7 +1,9 @@
 import { getReports } from "kruk";
 import {
 	convertHistoryData,
+	groupAdvancedByMetric,
 	groupByMetricAndSort,
+	REQUEST_METRIC_NAMES,
 	sanitizeError,
 	validateFormFactor,
 	validateUrls,
@@ -50,6 +52,7 @@ export async function POST({ request }) {
 			formFactor: formFactor,
 			origin: checkOrigin,
 			history,
+			metrics: REQUEST_METRIC_NAMES,
 		};
 
 		const cruxRaw = await getReports(urls, API_KEY, queryParams);
@@ -77,6 +80,10 @@ export async function POST({ request }) {
 			JSON.stringify({
 				cruxData,
 				byMetric: { params: cruxData.params, metrics: cruxDataByMetric },
+				advanced: {
+					params: cruxData.params,
+					metrics: groupAdvancedByMetric(cruxData.metrics),
+				},
 			}),
 			{
 				status: 200,
