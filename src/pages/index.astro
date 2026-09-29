@@ -27,9 +27,11 @@ let title = "🚀 CrUX Compare";
             <CruxApp client:visible />
             <SavedQueries client:visible />
             <footer>
-                Crux Compare v.{packageInfo.version} - created by <a
-                    href="https://gotomi.info">gotomi.info</a
-                > with data from the Chrome UX Report
+                Crux Compare v.{packageInfo.version} - created by{" "}
+                <a href="https://gotomi.info">gotomi.info</a> with data from the{" "}
+                <a href="https://developer.chrome.com/docs/crux">
+                    Chrome UX Report
+                </a>
             </footer>
         </main>
     </body>
@@ -44,6 +46,7 @@ let title = "🚀 CrUX Compare";
     footer {
         text-align: center;
         display: block;
+        padding-bottom: 32px;
     }
     .logo {
         display: inline-block;
