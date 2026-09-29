@@ -1,163 +1,115 @@
 # CrUX Compare
 
-A web-based tool for comparing Chrome UX Report (CrUX) performance data across multiple origins or URLs. Built with [Astro](https://astro.build) and [Svelte](https://svelte.dev).
+A web tool for comparing Chrome UX Report (CrUX) field data across multiple origins or URLs. Built with [Astro](https://astro.build) and [Svelte 5](https://svelte.dev).
 
 **Live tool: [crux.gotomi.info](https://crux.gotomi.info)**
 
-## Overview
+## Features
 
-CrUX Compare helps you analyze and compare real-world user experience metrics from the Chrome UX Report. Compare performance data across different URLs or origins to identify performance differences, track improvements, and understand how your site performs on different device types (phone, tablet, desktop).
-
-### Features
-
-- **Multi-URL Comparison** - Analyze and compare CrUX data for multiple URLs simultaneously
-- **Device Type Selection** - View metrics for all form factors, phones, tablets, or desktops
-- **Flexible Analysis** - Compare full URLs or entire origins
-- **History Comparison** - Track 25 weeks of CrUX History data with trend charts and weekly assessments
-- **Visual Metrics Display** - Clear visualization of Core Web Vitals and other performance metrics
-- **Real-time Data** - Fetch latest CrUX data directly from Google's API
+- **Multi-URL comparison** — analyze up to 10 origins/URLs side by side, sorted by Core Web Vitals performance
+- **Overview tab** — the classic CrUX metrics (LCP, CLS, INP, TTFB, FCP, RTT) as a summary table with week-over-week trend badges plus per-metric cards with histogram bars
+- **Advanced tab** — kruk 0.5.0-beta's newer CrUX metrics:
+  - **Navigation Types** — how page loads start (navigate, reload, back/forward incl. bfcache, prerender) as 100% stacked bars
+  - **Form Factors** — desktop / phone / tablet share of page loads (available when the device filter is `ALL_FORM_FACTORS`)
+  - **LCP Resource Type** — image vs text LCP element
+  - **LCP Image Phases** — p75 breakdown in ms: time to first byte, resource load delay, load duration, element render delay
+- **History mode** — 25-week CrUX History trends with sparklines and weekly rank strips (Overview tab; the Advanced tab is a follow-up)
+- **Shareable state** — all form options and the active tab persist in the URL (`?url=…&history&view=advanced`)
 
 ## Tech Stack
 
-- **Frontend Framework**: [Astro](https://astro.build) with [Svelte](https://svelte.dev) components
-- **CrUX API Client**: [kruk](https://github.com/gotomi/kruk)
-- **Language**: TypeScript/JavaScript
-- **Package Manager**: npm
+- [Astro](https://astro.build) (SSR, Deno adapter) + [Svelte 5](https://svelte.dev) (runes)
+- [kruk](https://github.com/gotomi/kruk) `0.5.0-beta` — CrUX API client (classic + advanced metrics, History API)
+- [MCP SDK](https://github.com/modelcontextprotocol/sdk) — `get-crux-data` MCP tool
 
-## Prerequisites
+## Getting Started
 
-Before you begin, you'll need:
-
-1. **Node.js** - Current LTS version or later
-2. **Chrome UX Report API Key** - Required to access CrUX data
-   - [Get your API Key](https://developers.google.com/web/tools/chrome-user-experience-report/api/guides/getting-started#APIKey)
-   - Requires a Google Cloud project with CrUX API enabled
-
-## Installation & Setup
-
-### 1. Clone the Repository
+### 1. Install
 
 ```bash
-git clone https://github.com/gotomi/crux-compare.git
+git clone git@github.com:gotomi/crux-compare.git
 cd crux-compare
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configure API Key
+### 2. Configure
 
-Create a `.env.local` file in the project root with your CrUX API key:
+Create `.env` in the project root:
 
 ```env
-PSIKUS=your_api_key_here
+PSIKUS=your_crux_api_key
+MCP_TOKEN=your_mcp_token
 ```
 
-Alternatively, set the environment variable in your system or in your deployment platform's environment settings.
+- `PSIKUS` — CrUX API key ([get one here](https://developers.google.com/web/tools/chrome-user-experience-report/api/guides/api-key))
+- `MCP_TOKEN` — bearer token protecting the MCP endpoint
 
-### 4. Local Development
+### 3. Run
 
 ```bash
 npm run dev
 ```
 
-This will start the Astro development server at `http://localhost:4321`.
-
 ## Usage
 
-1. Open the tool in your browser (localhost:4321 or deployed URL)
-2. Enter one or more URLs to analyze in the URL input fields
-3. Choose your device type preference (All Form Factors, Phone, Tablet, or Desktop)
-4. Optionally check the "origin" box to compare origins instead of full URLs
-5. Optionally check the "history" box to load 25 weeks of historical data
-6. Click "Get CrUX Data" to fetch and display the metrics
+1. Enter one or more URLs, toggle **origin** to compare origins instead of full pages, pick a device filter, optionally enable **history**
+2. Switch between the **Overview** and **Advanced** tabs above the results — the active tab is stored in the URL
+3. The Advanced tab requires no extra setup: the new metrics are fetched in the same CrUX request as the classic ones
 
-### Example
+## API
 
-- **URL**: `https://example.com/blog`
-- **Origin Mode**: Unchecked (analyze specific URL)
-- **Device Type**: Phone
-- **Result**: See phone performance metrics for that specific URL
+### `POST /api/getCrux`
 
-### History Mode
+Form-encoded body: `url` (repeatable), `checkOrigin`, `formFactor`, `history`.
+Returns `{ cruxData, byMetric, advanced }` — raw records, the grouped classic metrics, and the grouped advanced metrics.
 
-When the **history** checkbox is enabled, the tool queries the [CrUX History API](https://developers.google.com/web/tools/chrome-user-experience-report/api/guides/history) and shows how each metric evolved over the last **25 weekly collection periods** (~6 months). Each data point covers a 28-day collection window.
+### `POST /api/mcp`
 
-- **Summary table** - shows the latest period's values plus a week-over-week trend arrow (`▼3%` = better, `▲5%` = worse) comparing the latest p75 with the previous week's value (hover the arrow for details). The header date range reflects the latest 28-day collection period, followed by the trend length (e.g. `📅 30/08/2026 - 26/09/2026 · 25-week trend`)
-- **Trend charts** - each metric card shows a sparkline of the weekly p75. Line segments and points are colored by each week's assessment (good / needs improvement / poor), with a weekly rank strip underneath
-- **Interactive points** - hover or focus a point to see the exact date, p75 value, and rank; click to pin the tooltip (useful on touch screens), click again or press Escape to unpin
-- **Min/max scale** - each chart shows the p75 range and the trend's date span
-
-All history settings are persisted in the URL, so trend views can be shared or bookmarked like regular comparisons.
+MCP endpoint (JSON-RPC, `Authorization: Bearer $MCP_TOKEN`, stateless streamable HTTP).
+Exposes the `get-crux-data` tool (`urls`, `formFactor`, `checkOrigin` arguments); the response text contains the same `{ cruxData, byMetric, advanced }` envelope.
 
 ## Project Structure
 
 ```
 src/
-├── pages/
-│   ├── index.astro           # Main page
-│   └── api/
-│       └── getCrux.js        # API endpoint for CrUX API calls
 ├── components/
-│   ├── CruxApp.svelte        # Main app component with form
-│   ├── Header.svelte         # Results header
-│   ├── MetricsByUrl.svelte   # Metrics organized by URL
-│   ├── UrlsByMetric.svelte   # Metrics organized by device type
-│   ├── Metric.svelte         # Individual metric display
-│   ├── MetricHistory.svelte  # Metric trend chart (history mode)
-│   ├── Legend.svelte         # Metric legend
-│   ├── UiInput.svelte        # URL input component
-│   ├── UrlWithIcon.svelte    # URL display with favicon
-│   └── Header.svelte         # Page header
-└── env.d.ts                  # TypeScript environment types
+│   ├── CruxApp.svelte          # form + results orchestrator, Overview/Advanced tabs
+│   ├── AdvancedMetrics.svelte  # Advanced tab sections
+│   ├── FractionCard.svelte     # 100% stacked bars for fraction metrics
+│   ├── LcpPhases.svelte        # LCP image phase breakdown
+│   ├── UrlsByMetric.svelte     # Overview summary table + trend badges
+│   ├── MetricsByUrl.svelte     # per-metric sections (mode switch)
+│   ├── Metric.svelte           # standard metric card
+│   ├── MetricHistory.svelte    # history card with sparkline
+│   ├── Legend.svelte           # metric thresholds legend
+│   ├── Header.svelte           # collection period summary line
+│   ├── SavedQueries.svelte     # saved queries drawer
+│   ├── UrlWithIcon.svelte      # favicon + URL
+│   └── UiInput.svelte          # URL input with validation
+├── lib/
+│   ├── crux.ts                 # metric constants, converters, grouping
+│   ├── auth.ts                 # MCP token auth
+│   ├── rateLimit.ts            # per-identity rate limiting
+│   └── savedQueries.ts         # localStorage persistence
+└── pages/
+    ├── index.astro             # the page
+    └── api/
+        ├── getCrux.js          # CrUX proxy endpoint
+        ├── mcp.ts              # MCP endpoint (get-crux-data tool)
+        └── test.ts             # health check
 ```
 
-## Available Scripts
+## Scripts
 
-- `npm run dev` - Start the development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run astro` - Run Astro CLI commands
+| Command | Description |
+| --- | --- |
+| `npm run dev` | start the dev server |
+| `npm run build` | production build (Deno adapter) |
+| `npm run preview` | preview the production build |
+| `npm run lint` / `lint:fix` | Biome lint |
+| `npm run format` / `format:fix` | Biome format |
+| `npm run check` / `check:fix` | Biome check (lint + format) |
 
 ## Deployment
 
-Build the project for production:
-
-```bash
-npm run build
-```
-
-The build output is in the `dist/` directory. Deploy it to any hosting platform that supports Node.js or Deno (the project uses the Deno adapter). Set the `PSIKUS` environment variable on your platform to your CrUX API key.
-
-## How It Works
-
-1. **Frontend**: Users enter URLs and select filters through the Svelte interface
-2. **Form Submission**: Form data is sent to the Astro API endpoint
-3. **Backend Processing**: The `getCrux` endpoint uses the `kruk` library to query Google's CrUX API (regular or History endpoint)
-4. **Data Transformation**: Results are processed and organized for display (history records are converted into weekly p75/histogram/rank series)
-5. **Visualization**: Metrics are displayed side-by-side for easy comparison
-
-## API Reference
-
-### CrUX Data Structure
-
-The tool displays the following metrics (when available):
-
-- **Core Web Vitals**:
-  - LCP (Largest Contentful Paint)
-  - INP (Interaction to Next Paint)
-  - CLS (Cumulative Layout Shift)
-- **Additional Metrics**:
-  - FCP (First Contentful Paint)
-  - TTFB (Time to First Byte)
-  - RTT (Round Trip Time)
-
-### Device Types
-
-- `ALL_FORM_FACTORS` - All device types combined
-- `PHONE` - Mobile phone data
-- `TABLET` - Tablet data
-- `DESKTOP` - Desktop data
+Build with `npm run build` and deploy the `dist/` output to a Deno-capable host (the project uses `@deno/astro-adapter`). Set `PSIKUS` and `MCP_TOKEN` in the hosting environment.
