@@ -4,8 +4,10 @@ import { getReports } from "kruk";
 import { z } from "zod";
 import { getExpectedToken, validateAuth } from "../../lib/auth";
 import {
+	groupAdvancedByMetric,
 	groupByMetricAndSort,
 	MAX_URLS,
+	REQUEST_METRIC_NAMES,
 	validateFormFactor,
 	validateUrls,
 } from "../../lib/crux";
@@ -19,7 +21,7 @@ function createServer(): McpServer {
 
 	server.tool(
 		"get-crux-data",
-		"Get Chrome UX Report data for given URLs. Returns Core Web Vitals metrics (CLS, FCP, LCP, INP, TTFB) with histogram distributions and p75 values. Response includes raw cruxData and sorted byMetric structures.",
+		"Get Chrome UX Report data for given URLs. Returns Core Web Vitals metrics (CLS, FCP, LCP, INP, TTFB) with histogram distributions and p75 values, plus advanced metrics: navigation types, form factors, LCP resource type (fractions) and LCP image phases (TTFB, load delay, load duration, render delay). Response includes raw cruxData, sorted byMetric and grouped advanced structures.",
 		{
 			urls: z
 				.array(z.string())
@@ -62,6 +64,7 @@ function createServer(): McpServer {
 
 				const queryParams: Record<string, unknown> = {
 					origin: checkOrigin === true,
+					metrics: REQUEST_METRIC_NAMES,
 				};
 				if (formFactor) {
 					queryParams.formFactor = validateFormFactor(formFactor);
@@ -80,6 +83,10 @@ function createServer(): McpServer {
 									byMetric: {
 										params: cruxData.params,
 										metrics: cruxDataByMetric,
+									},
+									advanced: {
+										params: cruxData.params,
+										metrics: groupAdvancedByMetric(cruxData.metrics),
 									},
 								},
 								null,
