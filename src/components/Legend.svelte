@@ -8,10 +8,23 @@ const metricsMap = {
 	TTFB: { range: [800, 1800], name: "Time to First Byte" },
 	INP: { range: [200, 500], name: "Interaction To Next Paint" },
 	RTT: { range: [75, 275], name: "Round Trip Time" },
+	"LCP-SN": {
+		range: [2500, 4000],
+		name: "Largest Contentful Paint incl. soft navigations",
+	},
+	"CLS-SN": {
+		range: [0.1, 0.25],
+		name: "Cumulative Layout Shift incl. soft navigations",
+	},
+	"INP-SN": {
+		range: [200, 500],
+		name: "Interaction To Next Paint incl. soft navigations",
+	},
 };
 
 const metricData = $derived(metricsMap[metric]);
-const unit = $derived(metric === "CLS" ? "" : "ms");
+const unit = $derived(metric.startsWith("CLS") ? "" : "ms");
+const isExperimental = $derived(metric.endsWith("-SN"));
 const names = {
 	metrics: {
 		good: "Good",
@@ -35,12 +48,15 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
         <h2 title={metricData.name}>
             <span class="mobile">{metric}</span>
             <span class="desktop">{metricData.name}</span>
+            {#if isExperimental}
+                <span class="experimental-badge">experimental</span>
+            {/if}
         </h2>
         {#if unit}
             <div
                 class="metric-badge"
-                class:good={metric === 'CLS' || metric === 'INP'}
-                class:time={metric !== 'CLS'}
+                class:good={metric.startsWith("CLS") || metric.startsWith("INP")}
+                class:time={!metric.startsWith("CLS")}
             >
                 {unit}
             </div>
@@ -91,6 +107,20 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
         font-size: 1.25rem;
         font-weight: 600;
         color: #2c3e50;
+    }
+
+    .experimental-badge {
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 8px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: #fff3cd;
+        color: #856404;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
     }
 
     .metric-badge {

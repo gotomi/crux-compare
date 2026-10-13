@@ -14,12 +14,15 @@ A web tool for comparing Chrome UX Report (CrUX) field data across multiple orig
   - **LCP Resource Type** — image vs text LCP element
   - **LCP Image Phases** — p75 breakdown in ms: time to first byte, resource load delay, load duration, element render delay
 - **History mode** — 25-week CrUX History trends with sparklines and weekly rank strips (Overview tab; the Advanced tab is a follow-up)
-- **Shareable state** — all form options and the active tab persist in the URL (`?url=…&history&view=advanced`)
+- **Experimental metrics** — enable the **experimental** checkbox to include kruk 0.6.0's experimental metrics:
+  - **Soft-navigation CWV** — LCP-SN, CLS-SN, INP-SN: the Core Web Vitals variants that include soft navigations reported by SPA sites, with the same thresholds as the stable metrics. Shown as extra summary-table columns and metric sections (also in history mode)
+  - **Ad metrics** — AD-COUNT, AD-DENSITY, AD-CPU, AD-KB (p75 only, no thresholds) in the Advanced tab
+- **Shareable state** — all form options and the active tab persist in the URL (`?url=…&history&experimental&view=advanced`)
 
 ## Tech Stack
 
 - [Astro](https://astro.build) (SSR, Deno adapter) + [Svelte 5](https://svelte.dev) (runes)
-- [kruk](https://github.com/gotomi/kruk) `0.5.0-beta` — CrUX API client (classic + advanced metrics, History API)
+- [kruk](https://github.com/gotomi/kruk) `0.6.0` — CrUX API client (classic + advanced + experimental metrics, History API)
 - [MCP SDK](https://github.com/modelcontextprotocol/sdk) — `get-crux-data` MCP tool
 
 ## Getting Started
@@ -52,21 +55,22 @@ npm run dev
 
 ## Usage
 
-1. Enter one or more URLs, toggle **origin** to compare origins instead of full pages, pick a device filter, optionally enable **history**
+1. Enter one or more URLs, toggle **origin** to compare origins instead of full pages, pick a device filter, optionally enable **history** and **experimental**
 2. Switch between the **Overview** and **Advanced** tabs above the results — the active tab is stored in the URL
 3. The Advanced tab requires no extra setup: the new metrics are fetched in the same CrUX request as the classic ones
+4. With **experimental** on, origins without soft-navigation or ad traffic simply omit those columns and sections
 
 ## API
 
 ### `POST /api/getCrux`
 
-Form-encoded body: `url` (repeatable), `checkOrigin`, `formFactor`, `history`.
-Returns `{ cruxData, byMetric, advanced }` — raw records, the grouped classic metrics, and the grouped advanced metrics.
+Form-encoded body: `url` (repeatable), `checkOrigin`, `formFactor`, `history`, `experimental`.
+Returns `{ cruxData, byMetric, advanced }` — raw records, the grouped classic metrics, and the grouped advanced metrics. With `experimental`, the soft-navigation CWV variants join `byMetric` and the ad metrics join `advanced`.
 
 ### `POST /api/mcp`
 
 MCP endpoint (JSON-RPC, `Authorization: Bearer $MCP_TOKEN`, stateless streamable HTTP).
-Exposes the `get-crux-data` tool (`urls`, `formFactor`, `checkOrigin` arguments); the response text contains the same `{ cruxData, byMetric, advanced }` envelope.
+Exposes the `get-crux-data` tool (`urls`, `formFactor`, `checkOrigin`, `experimental` arguments); the response text contains the same `{ cruxData, byMetric, advanced }` envelope.
 
 ## Project Structure
 
@@ -75,6 +79,7 @@ src/
 ├── components/
 │   ├── CruxApp.svelte          # form + results orchestrator, Overview/Advanced tabs
 │   ├── AdvancedMetrics.svelte  # Advanced tab sections
+│   ├── AdMetrics.svelte        # experimental ad metrics (p75 bars)
 │   ├── FractionCard.svelte     # 100% stacked bars for fraction metrics
 │   ├── LcpPhases.svelte        # LCP image phase breakdown
 │   ├── UrlsByMetric.svelte     # Overview summary table + trend badges

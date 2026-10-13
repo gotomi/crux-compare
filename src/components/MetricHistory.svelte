@@ -17,7 +17,7 @@ const rankColors = {
 	poor: "#dc3545",
 };
 
-const unit = $derived(metric === "CLS" ? "" : "ms");
+const unit = $derived(metric.startsWith("CLS") ? "" : "ms");
 
 let hoverIndex = $state(null);
 let pinnedIndex = $state(null);

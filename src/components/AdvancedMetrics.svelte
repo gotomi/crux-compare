@@ -1,4 +1,6 @@
 <script>
+import { AD_METRIC_KEYS } from "../lib/crux";
+import AdMetrics from "./AdMetrics.svelte";
 import FractionCard from "./FractionCard.svelte";
 import LcpPhases from "./LcpPhases.svelte";
 
@@ -37,6 +39,10 @@ const sections = $derived(
 const hasSubparts = $derived(
 	SUBPART_KEYS.some((key) => (data?.metrics?.[key]?.length ?? 0) > 0),
 );
+
+const hasAds = $derived(
+	AD_METRIC_KEYS.some((key) => (data?.metrics?.[key]?.length ?? 0) > 0),
+);
 </script>
 
 {#each sections as section}
@@ -69,6 +75,22 @@ const hasSubparts = $derived(
             to the overall LCP p75.
         </p>
         <LcpPhases metrics={data?.metrics} />
+    </article>
+{/if}
+
+{#if hasAds}
+    <article>
+        <div class="section-header">
+            <h2>Ad Metrics</h2>
+            <span class="badge">p75 · experimental</span>
+        </div>
+        <p class="section-description">
+            Experimental ad metrics reported by Chrome: average number of ads
+            per page load, ad density, CPU time attributable to ads and ad
+            transfer weight. These are experimental and may change or be
+            removed; origins with little ad traffic may report no data.
+        </p>
+        <AdMetrics metrics={data?.metrics} />
     </article>
 {/if}
 

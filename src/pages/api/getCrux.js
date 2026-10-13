@@ -1,6 +1,7 @@
 import { getReports } from "kruk";
 import {
 	convertHistoryData,
+	EXPERIMENTAL_AD_NAMES,
 	groupAdvancedByMetric,
 	groupByMetricAndSort,
 	REQUEST_METRIC_NAMES,
@@ -28,6 +29,7 @@ export async function POST({ request }) {
 		const params = new URLSearchParams(body);
 		const checkOrigin = params.get("checkOrigin") !== null;
 		const history = params.get("history") !== null;
+		const experimental = params.get("experimental") !== null;
 
 		const formFactor = validateFormFactor(params.get("formFactor"));
 		const rawUrls = params
@@ -52,7 +54,10 @@ export async function POST({ request }) {
 			formFactor: formFactor,
 			origin: checkOrigin,
 			history,
-			metrics: REQUEST_METRIC_NAMES,
+			experimental,
+			metrics: experimental
+				? [...REQUEST_METRIC_NAMES, ...EXPERIMENTAL_AD_NAMES]
+				: REQUEST_METRIC_NAMES,
 		};
 
 		const cruxRaw = await getReports(urls, API_KEY, queryParams);

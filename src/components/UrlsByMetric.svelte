@@ -1,7 +1,12 @@
 <script>
 let { data, trendWeeks = $bindable(1) } = $props();
 
-import { CORE_WEB_VITALS, periodRange, TABLE_METRIC_KEYS } from "../lib/crux";
+import {
+	CORE_WEB_VITALS,
+	periodRange,
+	SOFTNAV_METRIC_KEYS,
+	TABLE_METRIC_KEYS,
+} from "../lib/crux";
 
 function imgIcon(url) {
 	return (
@@ -49,6 +54,15 @@ function trendOf(p75s) {
 	};
 }
 
+// soft-navigation columns appear only when the experimental data is present
+const snKeys = $derived(
+	SOFTNAV_METRIC_KEYS.filter((key) =>
+		(data.metrics ?? []).some((item) => item[key]),
+	),
+);
+
+const tableKeys = $derived([...TABLE_METRIC_KEYS, ...snKeys]);
+
 function getMetric() {
 	if (!data.metrics) return [];
 	return data.metrics.map((item) => {
@@ -57,7 +71,7 @@ function getMetric() {
 			url: item.url,
 			minimal: item.minimalGood,
 		});
-		TABLE_METRIC_KEYS.forEach((metric) => {
+		tableKeys.forEach((metric) => {
 			obj.push({
 				p75: item[metric]?.p75,
 				rank: item[metric]?.rank,
@@ -69,7 +83,7 @@ function getMetric() {
 	});
 }
 
-const table = $derived([["url", ...TABLE_METRIC_KEYS]].concat(getMetric()));
+const table = $derived([["url", ...tableKeys]].concat(getMetric()));
 
 const tableHeading = $derived(table[0]);
 </script>
@@ -81,7 +95,12 @@ const tableHeading = $derived(table[0]);
                 <thead>
                     <tr>
                         {#each tableHeading as cell}
-                            <th class:core-vital={CORE_WEB_VITALS.includes(cell)}>
+                            <th
+                                class:core-vital={CORE_WEB_VITALS.includes(cell)}
+                                title={cell.endsWith("-SN")
+                                    ? "experimental: includes soft navigations"
+                                    : undefined}
+                            >
                                 {cell === 'url'
                                     ? data.params.origin
                                         ? 'Origin'

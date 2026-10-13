@@ -21,6 +21,26 @@ export const TABLE_METRIC_KEYS: MetricKey[] = [
 	"FCP",
 ];
 
+// kruk 0.6.0 experimental CWV variants that include soft navigations;
+// same shape and thresholds as their stable counterparts, present in
+// responses only when the experimental flag was sent
+export type SoftnavMetricKey = "LCP-SN" | "CLS-SN" | "INP-SN";
+
+export const SOFTNAV_METRIC_KEYS: SoftnavMetricKey[] = [
+	"LCP-SN",
+	"CLS-SN",
+	"INP-SN",
+];
+
+export type DisplayMetricKey = MetricKey | SoftnavMetricKey;
+
+// classic 6 plus the soft-navigation variants; SN sections and table columns
+// stay hidden until the API returns data for them
+export const DISPLAY_METRIC_KEYS: DisplayMetricKey[] = [
+	...METRIC_KEYS,
+	...SOFTNAV_METRIC_KEYS,
+];
+
 export const FORM_FACTORS = [
 	"ALL_FORM_FACTORS",
 	"PHONE",
@@ -57,6 +77,12 @@ const RAW_METRIC_KEYS: Record<string, MetricKey> = {
 	round_trip_time: "RTT",
 };
 
+const SOFTNAV_RAW_KEYS: Record<string, SoftnavMetricKey> = {
+	experimental_largest_contentful_paint_with_softnavs: "LCP-SN",
+	experimental_cumulative_layout_shift_with_softnavs: "CLS-SN",
+	experimental_interaction_to_next_paint_with_softnavs: "INP-SN",
+};
+
 // kruk 0.5.0-beta advanced metrics: fraction distributions (no p75, no thresholds)
 export const FRACTION_METRIC_KEYS = [
 	"NAV_TYPES",
@@ -72,9 +98,19 @@ export const SUBPART_METRIC_KEYS = [
 	"LCP-RD",
 ] as const;
 
+// kruk 0.6.0 experimental ad metrics: independent p75s, no thresholds
+export const AD_METRIC_KEYS = [
+	"AD-COUNT",
+	"AD-DENSITY",
+	"AD-CPU",
+	"AD-KB",
+] as const;
+export type AdMetricKey = (typeof AD_METRIC_KEYS)[number];
+
 export const ADVANCED_METRIC_KEYS = [
 	...FRACTION_METRIC_KEYS,
 	...SUBPART_METRIC_KEYS,
+	...AD_METRIC_KEYS,
 ] as const;
 
 export type AdvancedMetricKey = (typeof ADVANCED_METRIC_KEYS)[number];
@@ -96,11 +132,32 @@ export const REQUEST_METRIC_NAMES: string[] = [
 	...Object.keys(ADVANCED_RAW_NAMES),
 ];
 
+// kruk's params.experimental only adds the soft-navigation CWV variants,
+// so the ad metrics join the request through the explicit metrics list
+export const EXPERIMENTAL_AD_NAMES: string[] = [
+	"experimental_ad_count",
+	"experimental_ad_density",
+	"experimental_ad_cpu",
+	"experimental_ad_kilobytes",
+];
+
+// soft-navigation variants are assessed with the same bounds as the stable CWV
+const SOFTNAV_THRESHOLDS: Record<SoftnavMetricKey, [number, number]> = {
+	"LCP-SN": METRIC_THRESHOLDS.LCP,
+	"CLS-SN": METRIC_THRESHOLDS.CLS,
+	"INP-SN": METRIC_THRESHOLDS.INP,
+};
+
+const THRESHOLDS = {
+	...METRIC_THRESHOLDS,
+	...SOFTNAV_THRESHOLDS,
+} as Record<DisplayMetricKey, [number, number]>;
+
 export function metricRank(
 	value: number,
-	metric: MetricKey,
+	metric: DisplayMetricKey,
 ): "good" | "average" | "poor" {
-	const [good, average] = METRIC_THRESHOLDS[metric];
+	const [good, average] = THRESHOLDS[metric];
 	if (value > average) return "poor";
 	if (value > good) return "average";
 	return "good";
@@ -120,6 +177,9 @@ export interface CruxSite {
 	INP?: CruxMetric;
 	TTFB?: CruxMetric;
 	RTT?: CruxMetric;
+	"LCP-SN"?: CruxMetric;
+	"CLS-SN"?: CruxMetric;
+	"INP-SN"?: CruxMetric;
 	minimalGood?: number;
 }
 
@@ -157,25 +217,25 @@ export function validateFormFactor(value: string | null): string | undefined {
 export function groupByMetricAndSort(
 	data: CruxSite[] | null | undefined,
 	sortBy: "histogram" | "p75" = "histogram",
-): Partial<Record<MetricKey, Array<{ url: string } & CruxMetric>>> {
+): Partial<Record<DisplayMetricKey, Array<{ url: string } & CruxMetric>>> {
 	if (!data) return {};
 
 	const byMetric: Partial<
-		Record<MetricKey, Array<{ url: string } & CruxMetric>>
+		Record<DisplayMetricKey, Array<{ url: string } & CruxMetric>>
 	> = {};
-	for (const key of METRIC_KEYS) {
+	for (const key of DISPLAY_METRIC_KEYS) {
 		byMetric[key] = [];
 	}
 
 	for (const site of data) {
-		for (const metric of METRIC_KEYS) {
+		for (const metric of DISPLAY_METRIC_KEYS) {
 			if (site[metric]) {
 				byMetric[metric]?.push({ url: site.url, ...site[metric] });
 			}
 		}
 	}
 
-	for (const metric of METRIC_KEYS) {
+	for (const metric of DISPLAY_METRIC_KEYS) {
 		byMetric[metric]?.sort((a, b) => {
 			const aVal =
 				sortBy === "histogram"
@@ -252,6 +312,9 @@ export interface HistorySite {
 	INP?: MetricHistory;
 	TTFB?: MetricHistory;
 	RTT?: MetricHistory;
+	"LCP-SN"?: MetricHistory;
+	"CLS-SN"?: MetricHistory;
+	"INP-SN"?: MetricHistory;
 	minimalGood: number;
 }
 
@@ -402,6 +465,14 @@ export function convertHistoryData(
 			}
 		}
 
+		// soft-navigation variants exist only when the experimental request
+		// returned them, so their cards/columns stay hidden otherwise
+		for (const [rawName, abbr] of Object.entries(SOFTNAV_RAW_KEYS)) {
+			const raw = record.metrics?.[rawName];
+			if (!raw) continue;
+			item[abbr] = convertMetricHistory(raw, abbr);
+		}
+
 		return item;
 	});
 
@@ -433,11 +504,22 @@ export interface AdvancedSite {
 	"LCP-LD"?: SubpartMetric;
 	"LCP-LDur"?: SubpartMetric;
 	"LCP-RD"?: SubpartMetric;
+	"AD-COUNT"?: SubpartMetric;
+	"AD-DENSITY"?: SubpartMetric;
+	"AD-CPU"?: SubpartMetric;
+	"AD-KB"?: SubpartMetric;
 }
 
 export type AdvancedGroupedMetrics = Partial<
 	Record<AdvancedMetricKey, Array<{ url: string } & AdvancedMetric>>
 >;
+
+// the API returns small decimal p75s (e.g. CLS, ad count) as strings like "0.58"
+function toFiniteNumber(value: unknown): number | undefined {
+	if (value === "-" || value === null || value === undefined) return undefined;
+	const n = typeof value === "number" ? value : Number(value);
+	return Number.isFinite(n) ? n : undefined;
+}
 
 // kruk already sorts sites by minimalGood; keep that order so the advanced view
 // lists URLs in the same sequence as the overview table
@@ -460,8 +542,11 @@ export function groupAdvancedByMetric(
 				if (metric.fractions && Object.keys(metric.fractions).length > 0) {
 					grouped[key]?.push({ url: site.url, fractions: metric.fractions });
 				}
-			} else if (typeof metric.p75 === "number") {
-				grouped[key]?.push({ url: site.url, p75: metric.p75 });
+			} else {
+				const p75 = toFiniteNumber(metric.p75);
+				if (p75 !== undefined) {
+					grouped[key]?.push({ url: site.url, p75 });
+				}
 			}
 		}
 	}

@@ -4,6 +4,7 @@ import { getReports } from "kruk";
 import { z } from "zod";
 import { getExpectedToken, validateAuth } from "../../lib/auth";
 import {
+	EXPERIMENTAL_AD_NAMES,
 	groupAdvancedByMetric,
 	groupByMetricAndSort,
 	MAX_URLS,
@@ -21,7 +22,7 @@ function createServer(): McpServer {
 
 	server.tool(
 		"get-crux-data",
-		"Get Chrome UX Report data for given URLs. Returns Core Web Vitals metrics (CLS, FCP, LCP, INP, TTFB) with histogram distributions and p75 values, plus advanced metrics: navigation types, form factors, LCP resource type (fractions) and LCP image phases (TTFB, load delay, load duration, render delay). Response includes raw cruxData, sorted byMetric and grouped advanced structures.",
+		"Get Chrome UX Report data for given URLs. Returns Core Web Vitals metrics (CLS, FCP, LCP, INP, TTFB) with histogram distributions and p75 values, plus advanced metrics: navigation types, form factors, LCP resource type (fractions) and LCP image phases (TTFB, load delay, load duration, render delay). Set experimental to also include the soft-navigation CWV variants (LCP-SN, CLS-SN, INP-SN) and ad metrics (AD-COUNT, AD-DENSITY, AD-CPU, AD-KB, p75 only). Response includes raw cruxData, sorted byMetric and grouped advanced structures.",
 		{
 			urls: z
 				.array(z.string())
@@ -36,15 +37,23 @@ function createServer(): McpServer {
 				.boolean()
 				.optional()
 				.describe("If true, queries origin data instead of URL data"),
+			experimental: z
+				.boolean()
+				.optional()
+				.describe(
+					"If true, includes experimental metrics: soft-navigation CWV variants (LCP-SN, CLS-SN, INP-SN) and ad metrics (AD-COUNT, AD-DENSITY, AD-CPU, AD-KB, p75 only)",
+				),
 		},
 		async ({
 			urls,
 			formFactor,
 			checkOrigin,
+			experimental,
 		}: {
 			urls: string[];
 			formFactor?: string;
 			checkOrigin?: boolean;
+			experimental?: boolean;
 		}) => {
 			const API_KEY = process.env.PSIKUS;
 			if (!API_KEY || typeof API_KEY !== "string" || API_KEY.trim() === "") {
@@ -64,7 +73,11 @@ function createServer(): McpServer {
 
 				const queryParams: Record<string, unknown> = {
 					origin: checkOrigin === true,
-					metrics: REQUEST_METRIC_NAMES,
+					experimental: experimental === true,
+					metrics:
+						experimental === true
+							? [...REQUEST_METRIC_NAMES, ...EXPERIMENTAL_AD_NAMES]
+							: REQUEST_METRIC_NAMES,
 				};
 				if (formFactor) {
 					queryParams.formFactor = validateFormFactor(formFactor);

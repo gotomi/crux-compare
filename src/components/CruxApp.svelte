@@ -14,6 +14,7 @@ let initialData = $state({
 	checkOrigin: true,
 	formFactor: "PHONE",
 	history: false,
+	experimental: false,
 });
 
 let promise = $state(Promise.reject(new Error("")));
@@ -77,6 +78,7 @@ onMount(async () => {
 	const checkOrigin = !!data.get("checkOrigin");
 	const formFactor = data.get("formFactor");
 	const history = !!data.get("history");
+	const experimental = !!data.get("experimental");
 
 	if (data.get("view") === "advanced") {
 		view = "advanced";
@@ -87,6 +89,7 @@ onMount(async () => {
 		initialData.checkOrigin = checkOrigin;
 		initialData.formFactor = formFactor;
 		initialData.history = history;
+		initialData.experimental = experimental;
 		promise = getCrux(data);
 	}
 });
@@ -157,6 +160,21 @@ async function onSubmit(e) {
             </label>
             <div id="history-help" class="sr-only">
                 Check this to show 25-week trends from the CrUX History API
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="checkbox-label">
+                <input
+                    type="checkbox"
+                    name="experimental"
+                    checked={initialData.experimental}
+                    aria-describedby="experimental-help"
+                />
+                <span>experimental</span>
+            </label>
+            <div id="experimental-help" class="sr-only">
+                Check this to include experimental Core Web Vitals with soft
+                navigations (LCP-SN, CLS-SN, INP-SN) and ad metrics
             </div>
         </div>
         <div class="control-group">
