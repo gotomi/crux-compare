@@ -21,8 +21,8 @@ A web tool for comparing Chrome UX Report (CrUX) field data across multiple orig
 
 ## Tech Stack
 
-- [Astro](https://astro.build) (SSR, Deno adapter) + [Svelte 5](https://svelte.dev) (runes)
-- [kruk](https://github.com/gotomi/kruk) `0.6.0` — CrUX API client (classic + advanced + experimental metrics, History API)
+- [Astro](https://astro.build) (SSR, Cloudflare Workers adapter) + [Svelte 5](https://svelte.dev) (runes)
+- [kruk](https://github.com/gotomi/kruk) `0.7.0` — CrUX API client via `fetch` (classic + advanced + experimental metrics, History API)
 - [MCP SDK](https://github.com/modelcontextprotocol/sdk) — `get-crux-data` MCP tool
 
 ## Getting Started
@@ -109,7 +109,7 @@ src/
 | Command | Description |
 | --- | --- |
 | `npm run dev` | start the dev server |
-| `npm run build` | production build (Deno adapter) |
+| `npm run build` | production build (Cloudflare adapter) |
 | `npm run preview` | preview the production build |
 | `npm run lint` / `lint:fix` | Biome lint |
 | `npm run format` / `format:fix` | Biome format |
@@ -117,4 +117,18 @@ src/
 
 ## Deployment
 
-Build with `npm run build` and deploy the `dist/` output to a Deno-capable host (the project uses `@deno/astro-adapter`). Set `PSIKUS` and `MCP_TOKEN` in the hosting environment.
+The app deploys to **Cloudflare Workers** (the project uses `@astrojs/cloudflare`; `wrangler.jsonc` holds the Worker settings).
+
+```bash
+npx wrangler login   # one-time OAuth login
+npm run deploy       # astro build + wrangler deploy
+```
+
+Secrets are read from `process.env` and must be set once on Cloudflare:
+
+```bash
+npx wrangler secret put PSIKUS    # CrUX API key
+npx wrangler secret put MCP_TOKEN # MCP endpoint bearer token
+```
+
+For local development put them in `.dev.vars` (gitignored); `astro dev`, `astro preview` and `wrangler dev` pick them up automatically. The KV namespace for Astro sessions (`SESSION`) is provisioned automatically on first deploy.
