@@ -14,7 +14,7 @@
 		"format:fix": "biome format --write .",
 		"check": "biome check .",
 		"check:fix": "biome check --write .",
-		"deploy": "cf deploy"
+		"deploy": "astro build && wrangler deploy"
 	},
 	"repository": {
 		"type": "git",
@@ -35,7 +35,6 @@
 		"esbuild": true
 	},
 	"devDependencies": {
-		"cf": "^1.0.0-beta.18",
 		"wrangler": "^4.151.1"
 	},
 	"type": "module"
