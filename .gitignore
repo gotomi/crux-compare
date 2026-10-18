@@ -19,6 +19,9 @@ yarn-error.log*
 # wrangler local state
 .wrangler/
 
+# cf local state
+.cloudflare/
+
 # macOS-specific files
 .DS_Store
 

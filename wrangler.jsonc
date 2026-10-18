@@ -1,14 +1,12 @@
-// Cloudflare Workers configuration for the Astro SSR build (see:
-// https://docs.astro.build/en/guides/integrations-guide/cloudflare/).
-// The @astrojs/cloudflare adapter (v14, Vite-plugin based) generates the
-// worker entry and assets routing itself — keep this file minimal.
-// Deploy with `cf deploy` (or `npx wrangler deploy`).
+// Wrangler config consumed by the @astrojs/cloudflare adapter (v14) during
+// `astro dev` / `astro build` (it cannot read cloudflare.config.ts yet).
+// Keep in sync with cloudflare.config.ts, which the `cf` CLI reads for deploy
+// and ignores this file once cloudflare.config.ts exists.
 {
 	"name": "crux-compare",
 	"compatibility_date": "2026-10-01",
 	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
 		"enabled": true
-	},
-	"upload_source_maps": true
+	}
 }

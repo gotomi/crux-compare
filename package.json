@@ -13,7 +13,8 @@
 		"format": "biome format .",
 		"format:fix": "biome format --write .",
 		"check": "biome check .",
-		"check:fix": "biome check --write ."
+		"check:fix": "biome check --write .",
+		"deploy": "cf deploy"
 	},
 	"repository": {
 		"type": "git",
@@ -25,7 +26,7 @@
 		"@biomejs/biome": "^2.5.15",
 		"@modelcontextprotocol/sdk": "^1.32.1",
 		"astro": "^7.4.0",
-		"kruk": "^0.6.0",
+		"kruk": "file:../kruk",
 		"prepend-http": "^4.0.0",
 		"svelte": "^5.57.2",
 		"zod": "^4.6.5"
@@ -34,6 +35,8 @@
 		"esbuild": true
 	},
 	"devDependencies": {
+		"cf": "^1.0.0-beta.18",
 		"wrangler": "^4.151.1"
-	}
+	},
+	"type": "module"
 }
