@@ -20,12 +20,11 @@
 		"url": "git@github.com:gotomi/crux-compare.git"
 	},
 	"dependencies": {
+		"@astrojs/cloudflare": "^14.4.0",
 		"@astrojs/svelte": "^9.0.1",
 		"@biomejs/biome": "^2.5.15",
-		"@deno/astro-adapter": "^0.6.0",
 		"@modelcontextprotocol/sdk": "^1.32.1",
-		"astro": "^7.3.8",
-		"eventsource": "^5.1.2",
+		"astro": "^7.4.0",
 		"kruk": "^0.6.0",
 		"prepend-http": "^4.0.0",
 		"svelte": "^5.57.2",
@@ -33,5 +32,8 @@
 	},
 	"allowScripts": {
 		"esbuild": true
+	},
+	"devDependencies": {
+		"wrangler": "^4.151.1"
 	}
 }

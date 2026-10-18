@@ -1,6 +1,0 @@
-{
-	"deploy": {
-		"org": "gotomi",
-		"app": "cruxapp"
-	}
-}
