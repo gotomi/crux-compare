@@ -21,15 +21,16 @@ export const TABLE_METRIC_KEYS: MetricKey[] = [
 	"FCP",
 ];
 
-// kruk 0.6.0 experimental CWV variants that include soft navigations;
+// kruk 0.6.0+ experimental CWV variants that include soft navigations;
 // same shape and thresholds as their stable counterparts, present in
-// responses only when the experimental flag was sent
-export type SoftnavMetricKey = "LCP-SN" | "CLS-SN" | "INP-SN";
+// responses only when the experimental flag was sent (FCP-SN arrived in 0.8.0)
+export type SoftnavMetricKey = "LCP-SN" | "CLS-SN" | "INP-SN" | "FCP-SN";
 
 export const SOFTNAV_METRIC_KEYS: SoftnavMetricKey[] = [
 	"LCP-SN",
 	"CLS-SN",
 	"INP-SN",
+	"FCP-SN",
 ];
 
 export type DisplayMetricKey = MetricKey | SoftnavMetricKey;
@@ -81,11 +82,15 @@ const SOFTNAV_RAW_KEYS: Record<string, SoftnavMetricKey> = {
 	experimental_largest_contentful_paint_with_softnavs: "LCP-SN",
 	experimental_cumulative_layout_shift_with_softnavs: "CLS-SN",
 	experimental_interaction_to_next_paint_with_softnavs: "INP-SN",
+	experimental_first_contentful_paint_with_softnavs: "FCP-SN",
 };
 
 // kruk 0.5.0-beta advanced metrics: fraction distributions (no p75, no thresholds)
+// NAV_TYPES-SN joined in kruk 0.8.0 as the experimental variant that includes
+// soft navigations; it is present only when the request used experimental
 export const FRACTION_METRIC_KEYS = [
 	"NAV_TYPES",
+	"NAV_TYPES-SN",
 	"FORM_FACTORS",
 	"LCP-RES",
 ] as const;
@@ -132,8 +137,9 @@ export const REQUEST_METRIC_NAMES: string[] = [
 	...Object.keys(ADVANCED_RAW_NAMES),
 ];
 
-// kruk's params.experimental only adds the soft-navigation CWV variants,
-// so the ad metrics join the request through the explicit metrics list
+// kruk's params.experimental adds the soft-navigation CWV variants (including
+// FCP-SN and NAV_TYPES-SN as of 0.8.0), so the ad metrics join the request
+// through the explicit metrics list
 export const EXPERIMENTAL_AD_NAMES: string[] = [
 	"experimental_ad_count",
 	"experimental_ad_density",
@@ -146,6 +152,7 @@ const SOFTNAV_THRESHOLDS: Record<SoftnavMetricKey, [number, number]> = {
 	"LCP-SN": METRIC_THRESHOLDS.LCP,
 	"CLS-SN": METRIC_THRESHOLDS.CLS,
 	"INP-SN": METRIC_THRESHOLDS.INP,
+	"FCP-SN": METRIC_THRESHOLDS.FCP,
 };
 
 const THRESHOLDS = {
@@ -180,6 +187,7 @@ export interface CruxSite {
 	"LCP-SN"?: CruxMetric;
 	"CLS-SN"?: CruxMetric;
 	"INP-SN"?: CruxMetric;
+	"FCP-SN"?: CruxMetric;
 	minimalGood?: number;
 }
 
@@ -315,6 +323,7 @@ export interface HistorySite {
 	"LCP-SN"?: MetricHistory;
 	"CLS-SN"?: MetricHistory;
 	"INP-SN"?: MetricHistory;
+	"FCP-SN"?: MetricHistory;
 	minimalGood: number;
 }
 
@@ -370,7 +379,7 @@ function toNumberOrNull(
 
 function convertMetricHistory(
 	raw: RawHistoryMetric,
-	metric: MetricKey,
+	metric: DisplayMetricKey,
 ): MetricHistory {
 	const p75s = (raw.percentilesTimeseries?.p75s ?? []).map(toNumberOrNull);
 	const bins = raw.histogramTimeseries ?? [];
@@ -498,6 +507,7 @@ export type AdvancedMetric = FractionMetric | SubpartMetric;
 export interface AdvancedSite {
 	url: string;
 	NAV_TYPES?: FractionMetric;
+	"NAV_TYPES-SN"?: FractionMetric;
 	FORM_FACTORS?: FractionMetric;
 	"LCP-RES"?: FractionMetric;
 	"LCP-TTFB"?: SubpartMetric;

@@ -8,21 +8,22 @@ A web tool for comparing Chrome UX Report (CrUX) field data across multiple orig
 
 - **Multi-URL comparison** — analyze up to 10 origins/URLs side by side, sorted by Core Web Vitals performance
 - **Overview tab** — the classic CrUX metrics (LCP, CLS, INP, TTFB, FCP, RTT) as a summary table with trend badges against a selectable comparison week (default: 1 week earlier) plus per-metric cards with histogram bars
-- **Advanced tab** — kruk 0.5.0-beta's newer CrUX metrics:
+- **Advanced tab** — kruk's newer CrUX metrics:
   - **Navigation Types** — how page loads start (navigate, reload, back/forward incl. bfcache, prerender) as 100% stacked bars
   - **Form Factors** — desktop / phone / tablet share of page loads (available when the device filter is `ALL_FORM_FACTORS`)
   - **LCP Resource Type** — image vs text LCP element
   - **LCP Image Phases** — p75 breakdown in ms: time to first byte, resource load delay, load duration, element render delay
 - **History mode** — 25-week CrUX History trends with sparklines and weekly rank strips (Overview tab; the Advanced tab is a follow-up)
-- **Experimental metrics** — enable the **experimental** checkbox to include kruk 0.6.0's experimental metrics:
-  - **Soft-navigation CWV** — LCP-SN, CLS-SN, INP-SN: the Core Web Vitals variants that include soft navigations reported by SPA sites, with the same thresholds as the stable metrics. Shown as extra summary-table columns and metric sections (also in history mode)
+- **Experimental metrics** — enable the **experimental** checkbox to include kruk 0.8.0's experimental metrics:
+  - **Soft-navigation CWV** — LCP-SN, CLS-SN, INP-SN, FCP-SN: the Core Web Vitals variants that include soft navigations reported by SPA sites, with the same thresholds as the stable metrics. Shown as extra summary-table columns and metric sections (also in history mode)
+  - **Soft-navigation navigation types** — NAV_TYPES-SN: navigation-type shares including soft navigations, shown as a stacked-bar section in the Advanced tab
   - **Ad metrics** — AD-COUNT, AD-DENSITY, AD-CPU, AD-KB (p75 only, no thresholds) in the Advanced tab
 - **Shareable state** — all form options and the active tab persist in the URL (`?url=…&history&experimental&view=advanced`)
 
 ## Tech Stack
 
 - [Astro](https://astro.build) (SSR, Cloudflare Workers adapter) + [Svelte 5](https://svelte.dev) (runes)
-- [kruk](https://github.com/gotomi/kruk) `0.7.0` — CrUX API client via `fetch` (classic + advanced + experimental metrics, History API)
+- [kruk](https://github.com/gotomi/kruk) `0.8.0` — CrUX API client via `fetch` (classic + advanced + experimental metrics, History API)
 - [MCP SDK](https://github.com/modelcontextprotocol/sdk) — `get-crux-data` MCP tool
 
 ## Getting Started
@@ -65,7 +66,7 @@ npm run dev
 ### `POST /api/getCrux`
 
 Form-encoded body: `url` (repeatable), `checkOrigin`, `formFactor`, `history`, `experimental`.
-Returns `{ cruxData, byMetric, advanced }` — raw records, the grouped classic metrics, and the grouped advanced metrics. With `experimental`, the soft-navigation CWV variants join `byMetric` and the ad metrics join `advanced`.
+Returns `{ cruxData, byMetric, advanced }` — raw records, the grouped classic metrics, and the grouped advanced metrics. With `experimental`, the soft-navigation CWV variants join `byMetric`, while NAV_TYPES-SN and the ad metrics join `advanced`.
 
 ### `POST /api/mcp`
 
@@ -106,14 +107,14 @@ src/
 
 ## Scripts
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | start the dev server |
-| `npm run build` | production build (Cloudflare adapter) |
-| `npm run preview` | preview the production build |
-| `npm run lint` / `lint:fix` | Biome lint |
-| `npm run format` / `format:fix` | Biome format |
-| `npm run check` / `check:fix` | Biome check (lint + format) |
+| Command                         | Description                           |
+| ------------------------------- | ------------------------------------- |
+| `npm run dev`                   | start the dev server                  |
+| `npm run build`                 | production build (Cloudflare adapter) |
+| `npm run preview`               | preview the production build          |
+| `npm run lint` / `lint:fix`     | Biome lint                            |
+| `npm run format` / `format:fix` | Biome format                          |
+| `npm run check` / `check:fix`   | Biome check (lint + format)           |
 
 ## Deployment
 

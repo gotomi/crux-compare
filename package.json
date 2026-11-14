@@ -1,6 +1,6 @@
 {
 	"name": "crux-compare",
-	"version": "1.6.0",
+	"version": "1.7.0",
 	"private": true,
 	"scripts": {
 		"dev": "astro dev",
@@ -21,21 +21,22 @@
 		"url": "git@github.com:gotomi/crux-compare.git"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "^14.4.0",
-		"@astrojs/svelte": "^9.1.0",
-		"@biomejs/biome": "^2.5.15",
-		"@modelcontextprotocol/sdk": "^1.32.1",
-		"astro": "^7.4.0",
-		"kruk": "^0.7.0",
+		"@astrojs/cloudflare": "^14.4.8",
+		"@astrojs/svelte": "^9.1.6",
+		"@biomejs/biome": "^2.6.7",
+		"@modelcontextprotocol/sdk": "^1.32.2",
+		"astro": "^7.4.12",
+		"kruk": "^0.8.0",
 		"prepend-http": "^4.0.0",
-		"svelte": "^5.57.2",
+		"svelte": "^5.57.3",
 		"zod": "^4.6.7"
 	},
 	"allowScripts": {
-		"esbuild": true
+		"esbuild": true,
+		"workerd": true
 	},
 	"devDependencies": {
-		"wrangler": "^4.151.1"
+		"wrangler": "^4.162.0"
 	},
 	"type": "module"
 }

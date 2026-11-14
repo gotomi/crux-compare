@@ -14,6 +14,13 @@ const FRACTION_SECTIONS = [
 			"How page loads start: regular navigations, reloads, back/forward (including back/forward cache) and prerendered loads.",
 	},
 	{
+		key: "NAV_TYPES-SN",
+		name: "Navigation Types incl. soft navigations",
+		description:
+			"How page loads start, including soft navigations reported by SPA route changes (experimental).",
+		experimental: true,
+	},
+	{
 		key: "FORM_FACTORS",
 		name: "Form Factors",
 		description: "Share of page loads per device class.",
@@ -33,7 +40,7 @@ const sections = $derived(
 	FRACTION_SECTIONS.map((section) => ({
 		...section,
 		entries: data?.metrics?.[section.key] ?? null,
-	})),
+	})).filter((section) => !section.experimental || section.entries),
 );
 
 const hasSubparts = $derived(

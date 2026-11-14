@@ -20,6 +20,10 @@ const metricsMap = {
 		range: [200, 500],
 		name: "Interaction To Next Paint incl. soft navigations",
 	},
+	"FCP-SN": {
+		range: [1800, 3000],
+		name: "First Contentful Paint incl. soft navigations",
+	},
 };
 
 const metricData = $derived(metricsMap[metric]);

@@ -174,7 +174,8 @@ async function onSubmit(e) {
             </label>
             <div id="experimental-help" class="sr-only">
                 Check this to include experimental Core Web Vitals with soft
-                navigations (LCP-SN, CLS-SN, INP-SN) and ad metrics
+                navigations (LCP-SN, CLS-SN, INP-SN, FCP-SN), navigation types
+                with soft navigations and ad metrics
             </div>
         </div>
         <div class="control-group">
