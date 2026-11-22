@@ -70,6 +70,9 @@ const trend = $derived.by(() => {
 	for (let i = 1; i < points.length; i++) {
 		const a = points[i - 1];
 		const b = points[i];
+		// do not bridge a missing week: a continuous line would imply data
+		// that the series does not contain
+		if (b.index !== a.index + 1) continue;
 		segments.push({
 			d: `M ${x(a.index)} ${y(a.value)} L ${x(b.index)} ${y(b.value)}`,
 			rank: post.ranks?.[b.index] ?? "unknown",
@@ -125,7 +128,7 @@ const activeDot = $derived.by(() => {
             </div>
         {:else}
             <div class="no-data">
-                <span class="no-data-text">No data</span>
+                <span class="no-data-text">No data in latest period</span>
             </div>
         {/if}
     </div>

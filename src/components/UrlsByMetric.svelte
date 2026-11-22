@@ -3,9 +3,9 @@ let { data, trendWeeks = $bindable(1) } = $props();
 
 import {
 	CORE_WEB_VITALS,
-	periodRange,
 	SOFTNAV_METRIC_KEYS,
 	TABLE_METRIC_KEYS,
+	trendOf,
 } from "../lib/crux";
 
 function imgIcon(url) {
@@ -13,45 +13,6 @@ function imgIcon(url) {
 		"https://www.google.com/s2/favicons?sz=16&domain_url=" +
 		url.replace("https://", "")
 	);
-}
-
-const TREND_THRESHOLD = 0.02;
-
-// p75 change vs trendWeeks earlier; lower is better for every metric
-function trendOf(p75s) {
-	if (!Array.isArray(p75s) || p75s.length <= trendWeeks) return null;
-
-	let lastIndex = -1;
-	for (let i = p75s.length - 1; i >= 0; i--) {
-		if (typeof p75s[i] === "number") {
-			lastIndex = i;
-			break;
-		}
-	}
-
-	let prevIndex = lastIndex - trendWeeks;
-	if (lastIndex < 0 || prevIndex < 0) return null;
-	while (prevIndex >= 0 && typeof p75s[prevIndex] !== "number") {
-		prevIndex--;
-	}
-	if (prevIndex < 0) return null;
-
-	const last = p75s[lastIndex];
-	const prev = p75s[prevIndex];
-	const delta = prev === 0 ? 0 : (last - prev) / prev;
-	if (!Number.isFinite(delta) || Math.abs(delta) < TREND_THRESHOLD) {
-		return null;
-	}
-
-	const percent = Math.abs(Math.round(delta * 100));
-	const weeks = `vs ${trendWeeks} week${trendWeeks === 1 ? "" : "s"} earlier`;
-	// params.dates holds the end date of each weekly collection period, aligned with the series
-	const range = periodRange(data.params?.dates?.[prevIndex]);
-	return {
-		dir: delta < 0 ? "better" : "worse",
-		label: `${delta < 0 ? "▼" : "▲"}${percent}%`,
-		title: `${percent}% ${delta < 0 ? "better" : "worse"}${range ? ` (${range})` : ` ${weeks}`}`,
-	};
 }
 
 // soft-navigation columns appear only when the experimental data is present
@@ -75,7 +36,12 @@ function getMetric() {
 			obj.push({
 				p75: item[metric]?.p75,
 				rank: item[metric]?.rank,
-				trend: trendOf(item[metric]?.p75s),
+				trend: trendOf(
+					item[metric]?.p75s,
+					trendWeeks,
+					data.params?.dates ?? [],
+					metric,
+				),
 			});
 		});
 
@@ -141,9 +107,15 @@ const tableHeading = $derived(table[0]);
                                         <div class="performance-bar">
                                             <div
                                                 class="bar-fill"
-                                                style={'width:' + cell.minimal + '%'}
+                                                style={'width:' +
+                                                    (cell.minimal ?? 0) +
+                                                    '%'}
                                             ></div>
-                                            <span class="bar-text">{cell.minimal}%</span>
+                                            <span class="bar-text"
+                                                >{cell.minimal == null
+                                                    ? "No CWV data"
+                                                    : `${cell.minimal}%`}</span
+                                            >
                                         </div>
                                     </td>
                                 {/if}
@@ -171,9 +143,13 @@ const tableHeading = $derived(table[0]);
                 <div class="performance-bar">
                     <div
                         class="bar-fill"
-                        style={'width:' + row[0].minimal + '%'}
+                        style={'width:' + (row[0].minimal ?? 0) + '%'}
                     ></div>
-                    <span class="bar-text">{row[0].minimal}% Good</span>
+                    <span class="bar-text"
+                        >{row[0].minimal == null
+                            ? "No CWV data"
+                            : `${row[0].minimal}% Good`}</span
+                    >
                 </div>
                 <div class="metrics-grid">
                     {#each row.slice(1) as metric, metricIndex}

@@ -4,11 +4,13 @@ import {
 	EXPERIMENTAL_AD_NAMES,
 	groupAdvancedByMetric,
 	groupByMetricAndSort,
+	HISTORY_METRIC_NAMES,
 	REQUEST_METRIC_NAMES,
 	sanitizeError,
 	validateFormFactor,
 	validateUrls,
 } from "../../lib/crux";
+import { fetchHistoryRecords } from "../../lib/historyApi";
 
 const corsHeaders = {
 	"Access-Control-Allow-Origin": "*",
@@ -49,27 +51,48 @@ export async function POST({ request }) {
 			);
 		}
 
-		const queryParams = {
-			effectiveConnectionType: "",
-			formFactor: formFactor,
-			origin: checkOrigin,
-			history,
-			experimental,
-			metrics: experimental
-				? [...REQUEST_METRIC_NAMES, ...EXPERIMENTAL_AD_NAMES]
-				: REQUEST_METRIC_NAMES,
-		};
-
-		const cruxRaw = await getReports(urls, API_KEY, queryParams);
-
 		if (history) {
-			const cruxData = convertHistoryData(cruxRaw);
+			const historyResult = await fetchHistoryRecords({
+				urls,
+				apiKey: API_KEY,
+				formFactor,
+				origin: checkOrigin,
+				experimental,
+				metrics: HISTORY_METRIC_NAMES,
+				periods: 25,
+			});
+
+			for (const failure of historyResult.failures) {
+				console.error(
+					`CrUX history request failed for ${failure.url}:`,
+					failure.message,
+				);
+			}
+
+			if (historyResult.records.length === 0) {
+				return new Response(
+					JSON.stringify({
+						error: "No CrUX history data returned for the requested URLs",
+					}),
+					{
+						status: 502,
+						headers: { ...corsHeaders, "Content-Type": "application/json" },
+					},
+				);
+			}
+
+			const cruxData = convertHistoryData(historyResult.records);
 			const cruxDataByMetric = groupByMetricAndSort(cruxData.metrics);
+			const warnings = historyResult.failures.map(
+				({ url }) =>
+					`No history data returned for ${url.replace(/^https?:\/\//, "")}`,
+			);
 
 			return new Response(
 				JSON.stringify({
 					cruxData,
 					byMetric: { params: cruxData.params, metrics: cruxDataByMetric },
+					...(warnings.length ? { warnings } : {}),
 				}),
 				{
 					status: 200,
@@ -78,8 +101,24 @@ export async function POST({ request }) {
 			);
 		}
 
-		const cruxData = cruxRaw;
+		const queryParams = {
+			formFactor: formFactor,
+			origin: checkOrigin,
+			history: false,
+			experimental,
+			metrics: experimental
+				? [...REQUEST_METRIC_NAMES, ...EXPERIMENTAL_AD_NAMES]
+				: REQUEST_METRIC_NAMES,
+		};
+
+		const cruxData = await getReports(urls, API_KEY, queryParams);
 		const cruxDataByMetric = groupByMetricAndSort(cruxData.metrics);
+		const warnings =
+			Array.isArray(cruxData.metrics) && cruxData.metrics.length < urls.length
+				? [
+						`CrUX data was returned for only ${cruxData.metrics.length} of ${urls.length} URLs`,
+					]
+				: [];
 
 		return new Response(
 			JSON.stringify({
@@ -89,6 +128,7 @@ export async function POST({ request }) {
 					params: cruxData.params,
 					metrics: groupAdvancedByMetric(cruxData.metrics),
 				},
+				...(warnings.length ? { warnings } : {}),
 			}),
 			{
 				status: 200,

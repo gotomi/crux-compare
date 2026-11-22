@@ -1,5 +1,6 @@
 <script>
 import { onMount } from "svelte";
+import { validateUrls } from "../lib/crux";
 import AdvancedMetrics from "./AdvancedMetrics.svelte";
 import Header from "./Header.svelte";
 import MetricsByUrl from "./MetricsByUrl.svelte";
@@ -18,7 +19,6 @@ let initialData = $state({
 });
 
 let promise = $state(Promise.reject(new Error("")));
-let isLoading = $state(false);
 let errors = $state({});
 let touched = $state({});
 let view = $state("overview");
@@ -102,31 +102,40 @@ async function getCrux(data) {
 		},
 		body: data,
 	});
-	const content = await res.json();
-	if (res.ok) {
-		return content;
-	} else {
-		throw new Error(content);
+
+	const text = await res.text();
+	let content = null;
+	try {
+		content = text ? JSON.parse(text) : null;
+	} catch {
+		// handled below with a readable status-based error
 	}
+
+	if (!res.ok) {
+		throw new Error(content?.error || `Request failed (${res.status})`);
+	}
+	if (!content) {
+		throw new Error("Invalid response from the CrUX API");
+	}
+
+	return content;
 }
 
-async function onSubmit(e) {
+function onSubmit(e) {
 	e.preventDefault();
-
-	isLoading = true;
 	errors = {};
 
+	const data = new URLSearchParams(new FormData(e.target));
+
 	try {
-		const data = new URLSearchParams(new FormData(e.target));
-		const result = await getCrux(data);
-		promise = Promise.resolve(result);
-		window.location.href = `/?${data.toString()}`;
+		validateUrls(data.getAll("url").filter((item) => item.trim().length > 0));
 	} catch (error) {
 		errors.form = error.message;
-		promise = Promise.reject(error);
-	} finally {
-		isLoading = false;
+		return;
 	}
+
+	// Let the fresh page load fetch the data once, from the shareable URL.
+	window.location.href = `/?${data.toString()}`;
 }
 </script>
 
@@ -221,7 +230,6 @@ async function onSubmit(e) {
                 type="button"
                 class="add"
                 onclick={addItem}
-                disabled={isLoading}
                 aria-label="Add another URL input"
             >
                 + Add URL
@@ -229,15 +237,9 @@ async function onSubmit(e) {
             <button
                 type="submit"
                 class="submit"
-                disabled={isLoading}
                 aria-describedby={errors.form ? 'form-error' : undefined}
             >
-                {#if isLoading}
-                    <span class="loading-spinner" aria-hidden="true">⟳</span>
-                    <span>Loading...</span>
-                {:else}
-                    Get CrUX Data
-                {/if}
+                Get CrUX Data
             </button>
         </div>
 
@@ -255,10 +257,6 @@ async function onSubmit(e) {
     </fieldset>
 </form>
 
-{#if isLoading}
-    <p class="sr-only" aria-live="polite">Loading CrUX data, please wait...</p>
-{/if}
-
 <div class="response">
     {#await promise}
         <p class="loader">
@@ -268,6 +266,13 @@ async function onSubmit(e) {
         {#if content.cruxData.error}
             <p class="error">{content.cruxData.error}</p>
         {:else}
+            {#if content.warnings?.length}
+                <div class="result-warning" role="status">
+                    {#each content.warnings as warning}
+                        <p>{warning}</p>
+                    {/each}
+                </div>
+            {/if}
             <div class="result-header">
                 <Header data={content.cruxData} />
                 {#if activeView(content) === "overview" &&
@@ -336,6 +341,24 @@ async function onSubmit(e) {
 </div>
 
 <style>
+    .result-warning {
+        margin: 12px 0;
+        padding: 10px 14px;
+        border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+        border-radius: 3px;
+        background: var(--warning-soft);
+        color: var(--text-strong);
+        font-size: 0.875rem;
+    }
+
+    .result-warning p {
+        margin: 0;
+    }
+
+    .result-warning p + p {
+        margin-top: 4px;
+    }
+
     .result-header {
         display: flex;
         align-items: center;
@@ -480,28 +503,6 @@ async function onSubmit(e) {
     .submit:hover:not(:disabled) {
         background-color: var(--primary-hover);
         transform: translateY(-1px);
-    }
-
-    .add:disabled,
-    .submit:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .loading-spinner {
-        display: inline-block;
-        animation: spin 1s linear infinite;
-        margin-right: 8px;
-    }
-
-    @keyframes spin {
-        from {
-            transform: rotate(0deg);
-        }
-        to {
-            transform: rotate(360deg);
-        }
     }
 
     .form-error {
