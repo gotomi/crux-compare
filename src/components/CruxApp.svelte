@@ -348,7 +348,7 @@ async function onSubmit(e) {
         display: inline-flex;
         gap: 2px;
         margin: 4px 0 12px;
-        background: #e9ecef;
+        background: var(--border);
         border-radius: 4px;
         padding: 3px;
     }
@@ -359,24 +359,24 @@ async function onSubmit(e) {
         padding: 8px 18px;
         font-size: 0.9rem;
         font-weight: 600;
-        color: #495057;
+        color: var(--text-muted);
         border-radius: 3px;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: all var(--transition);
     }
 
     .view-tabs button:hover:not(.active) {
-        background: #dee2e6;
+        background: var(--border-strong);
     }
 
     .view-tabs button.active {
-        background: #007bff;
-        color: #fff;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        background: var(--primary);
+        color: var(--on-primary);
+        box-shadow: var(--shadow-sm);
     }
 
     .view-tabs button:focus-visible {
-        outline: 2px solid #007bff;
+        outline: 2px solid var(--ring);
         outline-offset: 2px;
     }
 
@@ -384,9 +384,9 @@ async function onSubmit(e) {
         padding: var(--padding);
         padding-block: 20px;
         margin: 0;
-        background-color: #f8f9fa;
+        background-color: var(--surface-2);
         width: 100%;
-        border-bottom: 2px solid #e9ecef;
+        border-bottom: 2px solid var(--border);
     }
 
     .form-controls {
@@ -412,18 +412,19 @@ async function onSubmit(e) {
 
     .form-select {
         padding: 10px 12px;
-        background: #fff;
-        border: 2px solid #e9ecef;
+        background: var(--surface);
+        border: 2px solid var(--border);
         border-radius: 3px;
         font-size: 14px;
+        color: var(--text);
         min-width: 150px;
-        transition: border-color 0.2s ease;
+        transition: border-color var(--transition);
     }
 
     .form-select:focus {
         outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-soft);
     }
 
     .url-inputs {
@@ -452,31 +453,32 @@ async function onSubmit(e) {
     .add,
     .submit {
         padding: 12px 20px;
-        border: none;
+        border: 1px solid transparent;
         border-radius: 2px;
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all var(--transition);
     }
 
     .add {
-        background-color: #6c757d;
-        color: white;
+        background-color: var(--surface);
+        border-color: var(--border-strong);
+        color: var(--text);
     }
 
     .add:hover {
-        background-color: #5a6268;
+        background-color: var(--surface-2);
         transform: translateY(-1px);
     }
 
     .submit {
-        background-color: #007bff;
-        color: white;
+        background-color: var(--primary);
+        color: var(--on-primary);
     }
 
     .submit:hover:not(:disabled) {
-        background-color: #0056b3;
+        background-color: var(--primary-hover);
         transform: translateY(-1px);
     }
 
@@ -503,11 +505,11 @@ async function onSubmit(e) {
     }
 
     .form-error {
-        background-color: #f8d7da;
-        color: #721c24;
+        background-color: var(--danger-soft);
+        color: var(--danger);
         padding: 12px 16px;
         border-radius: 3px;
-        border: 1px solid #f5c6cb;
+        border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
         margin-top: 12px;
         font-size: 14px;
     }
@@ -532,7 +534,7 @@ async function onSubmit(e) {
 
     legend {
         font-weight: 600;
-        color: var(--dark);
+        color: var(--text-strong);
         margin-bottom: 12px;
         font-size: 1.1rem;
     }

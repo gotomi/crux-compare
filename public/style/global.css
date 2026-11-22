@@ -3,7 +3,17 @@
 	margin: 0;
 }
 
+/* ==========================================================================
+   Design tokens — CrUX Compare
+   Style: Minimalism & Swiss Style (ui-ux-pro-max) — both modes supported
+   Palette: Slate family; dark theme based on the skill's Dark Mode (OLED) row
+   Theme switching: inline init script in index.astro resolves
+   light/dark/system to a data-theme attribute before first paint.
+   ========================================================================== */
+
 :root {
+	color-scheme: light;
+
 	font-family:
 		-apple-system,
 		BlinkMacSystemFont,
@@ -21,23 +31,15 @@
 		var(--user-font-scale),
 		0.75rem
 	);
+	--font-mono:
+		ui-monospace, SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace;
 
+	/* Layout */
 	--page-width: 1200px;
 	--gap: 16px;
 	--padding: 16px max(var(--gap), calc((100% - var(--page-width)) / 2));
 
-	/* Color system */
-	--primary: #007bff;
-	--primary-dark: #0056b3;
-	--success: #28a745;
-	--warning: #ffc107;
-	--danger: #dc3545;
-	--info: #17a2b8;
-	--light: #f8f9fa;
-	--dark: #343a40;
-	--gray: #6c757d;
-
-	/* Spacing system */
+	/* Spacing */
 	--spacing-xs: 4px;
 	--spacing-sm: 8px;
 	--spacing-md: 16px;
@@ -49,42 +51,197 @@
 	--radius-md: 3px;
 	--radius-lg: 4px;
 
-	/* Shadows */
-	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
-	--shadow-md: 0 2px 8px rgba(0, 0, 0, 0.15);
-	--shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+	/* Motion */
+	--transition: 180ms ease;
+
+	/* Surfaces */
+	--bg: #f8fafc;
+	--surface: #ffffff;
+	--surface-2: #f1f5f9;
+	--border: #e2e8f0;
+	--border-strong: #cbd5e1;
+
+	/* Text */
+	--text: #334155;
+	--text-strong: #0f172a;
+	--text-muted: #475569;
+	--text-inverse: #f8fafc;
+
+	/* Primary (accent) */
+	--primary: #2563eb;
+	--primary-hover: #1d4ed8;
+	--on-primary: #ffffff;
+	--primary-soft: #eff6ff;
+
+	/* Semantic (Core Web Vitals rating colors) */
+	--success: #15803d;
+	--success-soft: #dcfce7;
+	--warning: #b45309;
+	--warning-soft: #fef3c7;
+	--danger: #b91c1c;
+	--danger-hover: #991b1c;
+	--danger-soft: #fee2e2;
+	--on-danger: #ffffff;
+	--info: #0e7490;
+	--info-soft: #cffafe;
+
+	/* Charts & data viz (bar colors pair with --on-chart-* label colors
+	   to keep ≥4.5:1 contrast in both themes) */
+	--chart-good: #16a34a;
+	--on-chart-good: #0f172a;
+	--chart-fair: #f59e0b;
+	--on-chart-fair: #0f172a;
+	--chart-poor: #dc3545;
+	--on-chart-poor: #ffffff;
+	--chart-data: #2563eb;
+	--on-chart-data: #ffffff;
+	--chart-grid: #e2e8f0;
+	--chart-track: #eef2f7;
+
+	/* Header brand band (kept dark in both modes) */
+	--header-bg: #0f172a;
+	--header-text: #e2e8f0;
+	--header-border: transparent;
+	/* Header brand elements — constant in both themes (the band never flips) */
+	--header-btn-bg: #1b2540;
+	--header-btn-border: #33426b;
+	--header-accent: #93a8ff;
+	--header-muted: #94a3b8;
+	--header-pill: #3562e8;
+	--header-star: #ffa400;
+	--radius-header: 10px;
+
+	/* Focus */
+	--ring: #1d4ed8;
+
+	/* Overlays (backdrops, scrims) */
+	--overlay: rgba(15, 23, 42, 0.45);
+
+	/* Categorical palette (navigation types, form factors, LCP elements)
+	   — deliberately distinct from the CWV traffic lights.
+	   *-soft pairs share the hue family with their base color. */
+	--cat-blue: #2563eb;
+	--cat-blue-soft: #93c5fd;
+	--cat-cyan: #0e7490;
+	--cat-cyan-soft: #67e8f9;
+	--cat-purple: #7c3aed;
+	--cat-purple-soft: #c4b5fd;
+	--cat-pink: #db2777;
+	--cat-pink-soft: #f9a8d4;
+	--cat-orange: #ea580c;
+	--cat-orange-soft: #fdba74;
+	--cat-teal: #0d9488;
+	--cat-teal-soft: #5eead4;
+	--cat-gray: #64748b;
+	--cat-gray-soft: #94a3b8;
+
+	/* Tooltip — intentionally dark in both themes, so these do not flip */
+	--tooltip-bg: #1e293b;
+	--tooltip-text: #f8fafc;
+	--tooltip-good: #7ee2a0;
+	--tooltip-fair: #ffd66e;
+	--tooltip-poor: #ff9ba6;
+	--tooltip-muted: #dee2e6;
+
+	/* Shadows (Swiss: subtle, borders do the structural work) */
+	--shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+	--shadow-md: 0 2px 8px rgba(15, 23, 42, 0.07);
+	--shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme="dark"] {
+	color-scheme: dark;
+
+	--bg: #0f172a;
+	--surface: #1e293b;
+	--surface-2: #273449;
+	--border: #334155;
+	--border-strong: #475569;
+
+	--text: #cbd5e1;
+	--text-strong: #f8fafc;
+	--text-muted: #94a3b8;
+	--text-inverse: #0f172a;
+
+	--primary: #60a5fa;
+	--primary-hover: #93c5fd;
+	--on-primary: #0f172a;
+	--primary-soft: rgba(96, 165, 250, 0.14);
+
+	--success: #4ade80;
+	--success-soft: rgba(74, 222, 128, 0.14);
+	--warning: #fbbf24;
+	--warning-soft: rgba(251, 191, 36, 0.14);
+	--danger: #f87171;
+	--danger-hover: #fca5a5;
+	--danger-soft: rgba(248, 113, 113, 0.14);
+	--on-danger: #0f172a;
+	--info: #22d3ee;
+	--info-soft: rgba(34, 211, 238, 0.14);
+
+	--chart-good: #22c55e;
+	--on-chart-good: #0f172a;
+	--chart-fair: #fbbf24;
+	--on-chart-fair: #0f172a;
+	--chart-poor: #dc2626;
+	--on-chart-poor: #ffffff;
+	--chart-data: #60a5fa;
+	--on-chart-data: #0f172a;
+	--chart-grid: #334155;
+	--chart-track: #273449;
+
+	--cat-blue: #60a5fa;
+	--cat-blue-soft: #2563eb;
+	--cat-cyan: #22d3ee;
+	--cat-cyan-soft: #0891b2;
+	--cat-purple: #a78bfa;
+	--cat-purple-soft: #7c3aed;
+	--cat-pink: #f472b6;
+	--cat-pink-soft: #db2777;
+	--cat-orange: #fb923c;
+	--cat-orange-soft: #ea580c;
+	--cat-teal: #2dd4bf;
+	--cat-teal-soft: #0d9488;
+	--cat-gray: #94a3b8;
+	--cat-gray-soft: #64748b;
+
+	--header-text: #f8fafc;
+	--header-border: #334155;
+
+	--ring: #f8fafc;
+
+	--overlay: rgba(0, 0, 0, 0.6);
+
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+	--shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+	--shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 body {
 	margin: 0 auto;
 	justify-content: center;
-	background: #f9fafb;
-	color: #111827;
+	background: var(--bg);
+	color: var(--text);
 }
-
-/* @media (prefers-color-scheme: dark) {
-  body {
-    background: #111827;
-    color: #fff;
-  }
-} */
 
 article {
 	width: 100%;
 	padding: 16px 0;
-	border-bottom: 1px solid #e9ecef;
-	background: white;
+	border-bottom: 1px solid var(--border);
+	background: var(--surface);
 
 	margin: 8px 0;
 
-	transition: all 0.3s ease;
+	transition:
+		background var(--transition),
+		border-color var(--transition);
 }
 
 form {
 	margin: 0;
-	background-color: #f8f9fa;
+	background-color: var(--surface-2);
 	width: 100%;
-	border-bottom: 2px solid #e9ecef;
+	border-bottom: 2px solid var(--border);
 }
 .response {
 	min-height: 300px;
@@ -104,7 +261,7 @@ form {
 	}
 }
 .error {
-	color: #ed3800;
+	color: var(--danger);
 }
 .loader {
 	margin: 50px auto;
@@ -127,6 +284,7 @@ form {
 		transform: rotate(360deg);
 	}
 }
+
 /* Base form elements - overridden by component-specific styles */
 input:not([type="checkbox"]):not([type="radio"]),
 select,
@@ -134,7 +292,10 @@ button {
 	font-family: inherit;
 	font-size: 14px;
 	box-sizing: border-box;
-	transition: all 0.2s ease;
+	transition:
+		background-color var(--transition),
+		border-color var(--transition),
+		color var(--transition);
 }
 
 input[type="checkbox"],
@@ -142,15 +303,9 @@ input[type="radio"] {
 	cursor: pointer;
 }
 
-input[type="checkbox"]:focus,
-input[type="radio"]:focus {
-	outline: 2px solid #007bff;
-	outline-offset: 2px;
-}
-
-/* Focus styles for accessibility */
+/* Focus styles for accessibility (visible keyboard focus in both themes) */
 *:focus {
-	outline: 2px solid #007bff;
+	outline: 2px solid var(--ring);
 	outline-offset: 2px;
 }
 
@@ -158,6 +313,23 @@ button:focus,
 input:focus,
 select:focus,
 textarea:focus {
-	outline: 2px solid #007bff;
+	outline: 2px solid var(--ring);
 	outline-offset: 2px;
+}
+
+/* Respect reduced-motion preference (skill checklist).
+   The !important flags are the canonical a11y reset pattern. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		/* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must win over any animation */
+		animation-duration: 0.01ms !important;
+		/* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must win over any animation */
+		animation-iteration-count: 1 !important;
+		/* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must win over any animation */
+		transition-duration: 0.01ms !important;
+		/* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must win over any animation */
+		scroll-behavior: auto !important;
+	}
 }

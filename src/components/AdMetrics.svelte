@@ -71,10 +71,10 @@ const maxOf = $derived.by(() => {
 
 <style>
     .ad-row {
-        background: white;
+        background: var(--surface);
         padding: 8px 16px;
         margin-bottom: 8px;
-        border-left: 3px solid #e9ecef;
+        border-left: 3px solid var(--border);
         display: flex;
         align-items: flex-start;
         gap: 16px;
@@ -106,7 +106,7 @@ const maxOf = $derived.by(() => {
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.03em;
-        color: #6c757d;
+        color: var(--text-muted);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -116,13 +116,13 @@ const maxOf = $derived.by(() => {
         display: block;
         height: 8px;
         border-radius: 2px;
-        background: #e9ecef;
+        background: var(--chart-track);
         overflow: hidden;
     }
 
     .ad-bar {
         height: 100%;
-        background: #6f42c1;
+        background: var(--cat-purple);
         border-radius: 2px;
         transition: width 0.3s ease;
     }
@@ -130,17 +130,18 @@ const maxOf = $derived.by(() => {
     .ad-value {
         font-size: 0.85rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-strong);
     }
 
     .ad-value small {
         font-weight: 400;
-        color: #6c757d;
+        color: var(--text-muted);
     }
 
     .missing .ad-value {
-        color: #adb5bd;
+        color: var(--text-muted);
         font-weight: 400;
+        opacity: 0.7;
     }
 
     @media (max-width: 768px) {

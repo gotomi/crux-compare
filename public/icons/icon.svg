@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <title>CrUX Compare</title>
+  <!-- Home screen icon source (full-bleed): the OS applies its own corner
+       mask, so the tile has no rounded corners and no border ring.
+       Three sorted bars rank the compared URLs; colors follow the
+       canonical Core Web Vitals thresholds. -->
+  <rect width="40" height="40" fill="#1b2540"></rect>
+  <rect x="9" y="9" width="22" height="5.5" rx="2.75" fill="#0cce6b"></rect>
+  <rect x="9" y="17.25" width="16" height="5.5" rx="2.75" fill="#ffa400"></rect>
+  <rect x="9" y="25.5" width="10" height="5.5" rx="2.75" fill="#ff6b5e"></rect>
+</svg>

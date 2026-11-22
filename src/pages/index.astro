@@ -1,9 +1,11 @@
 ---
 import * as packageInfo from "../../package.json";
 import CruxApp from "../components/CruxApp.svelte";
+import Logo from "../components/Logo.svelte";
 import SavedQueries from "../components/SavedQueries.svelte";
+import ThemeToggle from "../components/ThemeToggle.svelte";
 
-let title = "🚀 CrUX Compare";
+let title = "CrUX Compare";
 ---
 
 <html lang="en">
@@ -11,45 +13,157 @@ let title = "🚀 CrUX Compare";
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width" />
         <title>{title}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#0f172a" />
+        <meta name="apple-mobile-web-app-title" content="CrUX Compare" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <link rel="stylesheet" href="/style/global.css" />
+        <script is:inline>
+            // Resolve light/dark/system to a data-theme attribute before
+            // first paint to avoid a flash of the wrong theme (FOUC).
+            (() => {
+                const stored = localStorage.getItem("theme");
+                const mode =
+                    stored === "light" || stored === "dark" || stored === "system"
+                        ? stored
+                        : "system";
+                const dark =
+                    mode === "system"
+                        ? window.matchMedia("(prefers-color-scheme: dark)").matches
+                        : mode === "dark";
+                document.documentElement.dataset.theme = dark ? "dark" : "light";
+            })();
+        </script>
     </head>
     <body>
         <main>
             <header>
-                <h1 class="logo">{title}</h1>
-
-                <p>
-                    Compare Chrome UX Report field data for multiple origins or
-                    URLs
-                </p>
+                <div class="brand">
+                    <Logo size={52} />
+                    <div class="brand-copy">
+                        <h1 class="logo"
+                            >CrUX<span class="wordmark-accent"> Compare</span></h1
+                        >
+                        <p class="slogan">
+                            Chrome UX Report field data, side by side
+                        </p>
+                    </div>
+                </div>
+                <ThemeToggle client:load />
             </header>
             <CruxApp client:visible />
             <SavedQueries client:visible />
             <footer>
-                Crux Compare v.{packageInfo.version} - created by{" "}
-                <a href="https://gotomi.info">gotomi.info</a> with data from the{" "}
-                <a href="https://developer.chrome.com/docs/crux">
-                    Chrome UX Report
-                </a>
+                <span class="footer-brand">
+                    <Logo size={20} />
+                    <span class="footer-wordmark"
+                        >CrUX<span class="wordmark-accent"> Compare</span></span
+                    >
+                    <span class="footer-version">v{packageInfo.version}.</span>
+                </span>
+                <span class="footer-meta">
+                    Created by <a href="https://gotomi.info">gotomi.info</a> with
+                    data from the{" "}
+                    <a href="https://developer.chrome.com/docs/crux">
+                        Chrome UX Report
+                    </a>.
+                </span>
             </footer>
         </main>
     </body>
 </html>
 <style>
     header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--gap);
         padding: var(--padding);
-        background-color: #1f1f1f;
-        color: #fafafa;
+        background-color: var(--header-bg);
+        color: var(--header-text);
+        border-bottom: 1px solid var(--header-border);
         margin: 0;
     }
-    footer {
-        text-align: center;
-        display: block;
-        padding-bottom: 32px;
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+    }
+    .brand-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
     }
     .logo {
-        display: inline-block;
         margin: 0;
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: var(--header-text);
+    }
+    .wordmark-accent {
+        font-weight: 500;
+        color: var(--header-accent);
+    }
+    .slogan {
+        margin: 0;
+        font-size: 14px;
+        color: var(--header-muted);
+    }
+    footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px 10px;
+        padding: 0 var(--padding) 32px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    footer a {
+        color: var(--primary);
+    }
+    .footer-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .footer-version {
+        font-size: 0.95em;
+    }
+    .footer-wordmark {
+        font-size: 0.95rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: var(--text-strong);
+    }
+    /* footer sits on theme surfaces, so the accent follows --primary
+       instead of the header's fixed --header-accent */
+    .footer-brand .wordmark-accent {
+        color: var(--primary);
+    }
+    @media (max-width: 768px) {
+        .logo {
+            font-size: 24px;
+        }
+
+        /* keep footer content above the FAB cluster (toggle + Saved) */
+        footer {
+            padding-bottom: 72px;
+        }
+
+        /* attribution always starts its own line on small screens */
+        .footer-meta {
+            flex-basis: 100%;
+        }
     }
 </style>

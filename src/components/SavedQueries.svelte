@@ -58,8 +58,23 @@ function preview(query) {
 	aria-expanded={open}
 	aria-controls="saved-drawer"
 >
-	★ Saved
-	{#if queries.length}<span class="count">({queries.length})</span>{/if}
+	<!-- star -->
+	<svg
+		width="16"
+		height="16"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="var(--header-star)"
+		stroke-width="2"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		<path
+			d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"
+		/>
+	</svg>
+	Saved
+	{#if queries.length}<span class="count">{queries.length}</span>{/if}
 </button>
 
 {#if open}
@@ -76,7 +91,24 @@ function preview(query) {
 	aria-hidden={!open}
 >
 	<header class="drawer-head">
-		<h2>★ Saved queries</h2>
+		<h2>
+			<!-- star -->
+			<svg
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="var(--header-star)"
+				stroke-width="2"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<path
+					d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"
+				/>
+			</svg>
+			Saved queries
+		</h2>
 		<button
 			type="button"
 			class="icon-btn"
@@ -125,7 +157,22 @@ function preview(query) {
 					}}
 					aria-label={`Delete ${q.name}`}
 				>
-					🗑
+					<!-- trash -->
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+						<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+						<path d="M10 11v6M14 11v6" />
+					</svg>
 				</button>
 			</li>
 		{:else}
@@ -138,38 +185,44 @@ function preview(query) {
 	.fab {
 		position: fixed;
 		top: 16px;
-		right: 16px;
+		/* right of the theme toggle (toggle: right 60px, 44px wide) */
+		right: 112px;
 		z-index: 100;
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
-		padding: 10px 16px;
-		border: none;
-		border-radius: 3px;
-		background-color: #1f1f1f;
-		color: #fafafa;
+		gap: 8px;
+		min-height: 44px;
+		padding: 0 16px;
+		border: 1px solid var(--header-btn-border);
+		border-radius: var(--radius-header);
+		background-color: var(--header-btn-bg);
+		color: var(--header-text);
 		font-size: 14px;
 		font-weight: 600;
 		cursor: pointer;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-		transition: background-color 0.2s ease, transform 0.2s ease;
+		box-shadow: var(--shadow-md);
+		transition: background-color var(--transition), transform var(--transition);
 	}
 
 	.fab:hover {
-		background-color: #333;
+		background-color: color-mix(in srgb, var(--header-btn-bg), #ffffff 10%);
 		transform: translateY(-1px);
 	}
 
 	.fab .count {
-		opacity: 0.8;
-		font-weight: 500;
+		background: var(--header-pill);
+		border-radius: 999px;
+		padding: 1px 8px;
+		font-size: 12px;
+		font-weight: 600;
+		color: #ffffff;
 	}
 
 	.backdrop {
 		position: fixed;
 		inset: 0;
 		z-index: 90;
-		background-color: rgba(0, 0, 0, 0.4);
+		background-color: var(--overlay);
 		animation: fade-in 0.2s ease;
 	}
 
@@ -181,8 +234,8 @@ function preview(query) {
 		height: 100%;
 		width: 340px;
 		max-width: 100%;
-		background-color: #fff;
-		box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+		background-color: var(--surface);
+		box-shadow: var(--shadow-lg);
 		transform: translateX(100%);
 		transition: transform 0.25s ease;
 		display: flex;
@@ -199,14 +252,17 @@ function preview(query) {
 		align-items: center;
 		justify-content: space-between;
 		padding: 16px;
-		border-bottom: 2px solid #e9ecef;
-		background-color: #1f1f1f;
-		color: #fafafa;
+		border-bottom: 2px solid var(--border);
+		background-color: var(--header-bg);
+		color: var(--header-text);
 	}
 
 	.drawer-head h2 {
 		margin: 0;
 		font-size: 1.1rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
 	}
 
 	.icon-btn {
@@ -221,7 +277,7 @@ function preview(query) {
 		color: inherit;
 		font-size: 16px;
 		cursor: pointer;
-		transition: background-color 0.2s ease;
+		transition: background-color var(--transition);
 	}
 
 	.drawer-head .icon-btn:hover {
@@ -233,40 +289,42 @@ function preview(query) {
 		flex-wrap: wrap;
 		gap: 8px;
 		padding: 16px;
-		border-bottom: 1px solid #e9ecef;
-		background-color: #f8f9fa;
+		border-bottom: 1px solid var(--border);
+		background-color: var(--surface-2);
 	}
 
 	.save-form input {
 		flex: 1;
 		min-width: 140px;
 		padding: 10px 12px;
-		border: 2px solid #e9ecef;
+		border: 2px solid var(--border);
 		border-radius: 3px;
 		font-size: 14px;
-		transition: border-color 0.2s ease;
+		color: var(--text);
+		background: var(--surface);
+		transition: border-color var(--transition);
 	}
 
 	.save-form input:focus {
 		outline: none;
-		border-color: #007bff;
-		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+		border-color: var(--primary);
+		box-shadow: 0 0 0 3px var(--primary-soft);
 	}
 
 	.save-btn {
 		padding: 10px 16px;
 		border: none;
 		border-radius: 2px;
-		background-color: #007bff;
-		color: #fff;
+		background-color: var(--primary);
+		color: var(--on-primary);
 		font-size: 14px;
 		font-weight: 600;
 		cursor: pointer;
-		transition: background-color 0.2s ease, transform 0.2s ease;
+		transition: background-color var(--transition), transform var(--transition);
 	}
 
 	.save-btn:hover:not(:disabled) {
-		background-color: #0056b3;
+		background-color: var(--primary-hover);
 		transform: translateY(-1px);
 	}
 
@@ -279,7 +337,7 @@ function preview(query) {
 		width: 100%;
 		margin: 0;
 		font-size: 13px;
-		color: #6c757d;
+		color: var(--text-muted);
 	}
 
 	.query-list {
@@ -299,7 +357,7 @@ function preview(query) {
 	}
 
 	.query-list li:hover {
-		background-color: #f8f9fa;
+		background-color: var(--surface-2);
 	}
 
 	.query-row {
@@ -319,29 +377,29 @@ function preview(query) {
 	.q-name {
 		font-weight: 600;
 		font-size: 14px;
-		color: #1f1f1f;
+		color: var(--text-strong);
 	}
 
 	.q-preview {
 		font-size: 12px;
-		color: #6c757d;
+		color: var(--text-muted);
 		word-break: break-all;
 	}
 
 	.icon-btn.del {
 		width: 40px;
-		color: #6c757d;
+		color: var(--text-muted);
 	}
 
 	.icon-btn.del:hover {
-		background-color: #f8d7da;
-		color: #721c24;
+		background-color: var(--danger-soft);
+		color: var(--danger);
 	}
 
 	.empty {
 		padding: 24px 12px;
 		text-align: center;
-		color: #6c757d;
+		color: var(--text-muted);
 		font-size: 14px;
 	}
 
@@ -357,6 +415,12 @@ function preview(query) {
 	@media (max-width: 768px) {
 		.drawer {
 			width: 100%;
+		}
+
+		/* move below the content on small screens, next to the theme toggle */
+		.fab {
+			top: auto;
+			bottom: 16px;
 		}
 	}
 </style>
