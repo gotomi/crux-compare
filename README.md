@@ -24,7 +24,6 @@ A web tool for comparing Chrome UX Report (CrUX) field data across multiple orig
 
 - [Astro](https://astro.build) (SSR, Cloudflare Workers adapter) + [Svelte 5](https://svelte.dev) (runes)
 - [kruk](https://github.com/gotomi/kruk) `0.8.0` — CrUX API client via `fetch` (classic + advanced + experimental metrics, History API)
-- [MCP SDK](https://github.com/modelcontextprotocol/sdk) — `get-crux-data` MCP tool
 
 ## Getting Started
 
@@ -42,11 +41,9 @@ Create `.env` in the project root:
 
 ```env
 PSIKUS=your_crux_api_key
-MCP_TOKEN=your_mcp_token
 ```
 
 - `PSIKUS` — CrUX API key ([get one here](https://developers.google.com/web/tools/chrome-user-experience-report/api/guides/api-key))
-- `MCP_TOKEN` — bearer token protecting the MCP endpoint
 
 ### 3. Run
 
@@ -70,11 +67,6 @@ Returns `{ cruxData, byMetric, advanced }` for a normal query — raw records, t
 
 With `history`, the endpoint returns `{ cruxData, byMetric, warnings? }`; the Advanced tab is not available in history mode. The history request only fetches stable metrics plus experimental soft-navigation CWV variants, not the advanced/ad metrics.
 
-### `POST /api/mcp`
-
-MCP endpoint (JSON-RPC, `Authorization: Bearer $MCP_TOKEN`, stateless streamable HTTP).
-Exposes the `get-crux-data` tool (`urls`, `formFactor`, `checkOrigin`, `experimental` arguments); the response text contains the same `{ cruxData, byMetric, advanced }` envelope.
-
 ## Project Structure
 
 ```
@@ -96,14 +88,11 @@ src/
 │   └── UiInput.svelte          # URL input with validation
 ├── lib/
 │   ├── crux.ts                 # metric constants, converters, grouping
-│   ├── auth.ts                 # MCP token auth
-│   ├── rateLimit.ts            # per-identity rate limiting
 │   └── savedQueries.ts         # localStorage persistence
 └── pages/
     ├── index.astro             # the page
     └── api/
         ├── getCrux.js          # CrUX proxy endpoint
-        ├── mcp.ts              # MCP endpoint (get-crux-data tool)
         └── test.ts             # health check
 ```
 
@@ -132,7 +121,6 @@ Secrets are read from `process.env` and must be set once on Cloudflare:
 
 ```bash
 npx wrangler secret put PSIKUS    # CrUX API key
-npx wrangler secret put MCP_TOKEN # MCP endpoint bearer token
 ```
 
 For local development put them in `.dev.vars` (gitignored); `astro dev`, `astro preview` and `wrangler dev` pick them up automatically. The KV namespace for Astro sessions (`SESSION`) is provisioned automatically on first deploy.

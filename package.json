@@ -1,6 +1,6 @@
 {
 	"name": "crux-compare",
-	"version": "2.0.0",
+	"version": "3.0.0",
 	"private": true,
 	"scripts": {
 		"dev": "astro dev",
@@ -25,12 +25,10 @@
 		"@astrojs/cloudflare": "^14.4.8",
 		"@astrojs/svelte": "^9.1.6",
 		"@biomejs/biome": "^2.6.7",
-		"@modelcontextprotocol/sdk": "^1.32.2",
 		"astro": "^7.4.12",
 		"kruk": "^0.8.0",
 		"prepend-http": "^4.0.0",
-		"svelte": "^5.57.3",
-		"zod": "^4.6.7"
+		"svelte": "^5.57.3"
 	},
 	"allowScripts": {
 		"esbuild": true,
