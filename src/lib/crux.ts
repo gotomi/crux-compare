@@ -90,6 +90,18 @@ const SOFTNAV_RAW_KEYS: Record<string, SoftnavMetricKey> = {
 	experimental_first_contentful_paint_with_softnavs: "FCP-SN",
 };
 
+// the History API accepts the four soft-navigation CWV metrics; NAV_TYPES-SN
+// is supported too, but the history view does not render it, so the request
+// carries exactly what convertHistoryData consumes
+export const HISTORY_SOFTNAV_METRIC_NAMES: string[] =
+	Object.keys(SOFTNAV_RAW_KEYS);
+
+export function historyMetricSelection(experimental: boolean): string[] {
+	return experimental
+		? [...HISTORY_METRIC_NAMES, ...HISTORY_SOFTNAV_METRIC_NAMES]
+		: HISTORY_METRIC_NAMES;
+}
+
 // kruk 0.5.0-beta advanced metrics: fraction distributions (no p75, no thresholds)
 // NAV_TYPES-SN joined in kruk 0.8.0 as the experimental variant that includes
 // soft navigations; it is present only when the request used experimental
@@ -127,6 +139,9 @@ export type AdvancedMetricKey = (typeof ADVANCED_METRIC_KEYS)[number];
 
 const ADVANCED_RAW_NAMES: Record<string, string> = {
 	navigation_types: "NAV_TYPES",
+	// Verified against the live API: with a metrics filter the API only
+	// returns form_factors when it is listed here; omitting metrics returns
+	// it automatically. It is ignored (not an error) when formFactor is set.
 	form_factors: "FORM_FACTORS",
 	largest_contentful_paint_resource_type: "LCP-RES",
 	largest_contentful_paint_image_time_to_first_byte: "LCP-TTFB",
@@ -177,7 +192,8 @@ export function metricRank(
 
 interface CruxMetric {
 	histogram?: number[];
-	p75?: number;
+	// the API returns small decimals (e.g. CLS) as strings such as "0.00"
+	p75?: number | string | null;
 	rank?: string;
 }
 
@@ -273,7 +289,12 @@ export function sanitizeError(error: unknown): string {
 			return "Service temporarily unavailable. Please try again later.";
 		}
 
-		if (msg.includes("Invalid URL")) {
+		if (
+			msg.includes("Invalid URL") ||
+			msg.includes("Invalid form factor") ||
+			msg.includes("At least one") ||
+			msg.includes("Maximum")
+		) {
 			return msg;
 		}
 

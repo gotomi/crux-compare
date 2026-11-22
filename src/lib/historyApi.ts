@@ -5,7 +5,6 @@ export interface HistoryRequestParams {
 	apiKey: string;
 	formFactor?: string;
 	origin: boolean;
-	experimental: boolean;
 	metrics: string[];
 	periods?: number;
 }
@@ -27,6 +26,10 @@ export interface HistoryRecords {
  * error indistinguishable from a URL with no data. History needs raw records
  * anyway, so use the exported query builders directly and keep the failures.
  *
+ * `metrics` is the exact list the caller wants. kruk's experimental flag would
+ * also add NAV_TYPES-SN, which the history view does not render, so it stays
+ * off here.
+ *
  * URLs must already be normalized by validateUrls().
  */
 export async function fetchHistoryRecords({
@@ -34,7 +37,6 @@ export async function fetchHistoryRecords({
 	apiKey,
 	formFactor,
 	origin,
-	experimental,
 	metrics,
 	periods = 25,
 }: HistoryRequestParams): Promise<HistoryRecords> {
@@ -42,7 +44,8 @@ export async function fetchHistoryRecords({
 		formFactor,
 		origin,
 		history: true,
-		experimental,
+		// the caller supplies the exact metric list; see the doc comment
+		experimental: false,
 		metrics,
 		periods,
 	};

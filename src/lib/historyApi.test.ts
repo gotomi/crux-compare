@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchHistoryRecords } from "./historyApi";
 
 vi.mock("kruk", () => ({
-	buildQueryParams: vi.fn((params, url) => ({ ...params, url })),
+	buildQueryParams: vi.fn((params: Record<string, unknown>, url: string) => ({
+		...params,
+		url,
+	})),
 	runQuery: vi.fn(),
 }));
 
@@ -14,17 +17,17 @@ afterEach(() => {
 describe("fetchHistoryRecords", () => {
 	it("keeps successful records and reports failures per URL", async () => {
 		vi.mocked(runQuery).mockImplementation(async (_key, query) => {
-			if (query.url.includes("bad")) {
+			const url = String(query.url ?? "");
+			if (url.includes("bad")) {
 				throw new Error("URL not found");
 			}
-			return { record: { key: { url: query.url } } };
+			return { record: { key: { url } } };
 		});
 
 		const result = await fetchHistoryRecords({
 			urls: ["https://good.example", "https://bad.example"],
 			apiKey: "test-key",
 			origin: false,
-			experimental: false,
 			metrics: ["largest_contentful_paint"],
 		});
 
@@ -37,6 +40,7 @@ describe("fetchHistoryRecords", () => {
 			expect.objectContaining({
 				history: true,
 				periods: 25,
+				experimental: false,
 				metrics: ["largest_contentful_paint"],
 			}),
 			"https://good.example",
@@ -50,7 +54,6 @@ describe("fetchHistoryRecords", () => {
 			urls: ["https://example.com"],
 			apiKey: "test-key",
 			origin: true,
-			experimental: true,
 			metrics: [],
 		});
 

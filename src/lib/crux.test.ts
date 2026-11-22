@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { convertHistoryData, HISTORY_METRIC_NAMES, trendOf } from "./crux";
+import {
+	convertHistoryData,
+	HISTORY_METRIC_NAMES,
+	HISTORY_SOFTNAV_METRIC_NAMES,
+	historyMetricSelection,
+	REQUEST_METRIC_NAMES,
+	trendOf,
+} from "./crux";
 
 function dateParts(iso: string) {
 	const [year, month, day] = iso.split("-").map(Number);
@@ -264,6 +271,42 @@ describe("HISTORY_METRIC_NAMES", () => {
 			"experimental_time_to_first_byte",
 			"interaction_to_next_paint",
 			"round_trip_time",
+		]);
+	});
+});
+
+describe("REQUEST_METRIC_NAMES", () => {
+	it("requests form_factors explicitly, plus the advanced metrics", () => {
+		// with a metrics filter the API only returns form_factors when it is
+		// listed; omitting metrics would return it automatically
+		expect(REQUEST_METRIC_NAMES).toEqual([
+			"cumulative_layout_shift",
+			"first_contentful_paint",
+			"largest_contentful_paint",
+			"experimental_time_to_first_byte",
+			"interaction_to_next_paint",
+			"round_trip_time",
+			"navigation_types",
+			"form_factors",
+			"largest_contentful_paint_resource_type",
+			"largest_contentful_paint_image_time_to_first_byte",
+			"largest_contentful_paint_image_resource_load_delay",
+			"largest_contentful_paint_image_resource_load_duration",
+			"largest_contentful_paint_image_element_render_delay",
+		]);
+	});
+});
+
+describe("historyMetricSelection", () => {
+	it("selects the stable metrics and only the four soft-navigation CWV variants", () => {
+		expect(HISTORY_SOFTNAV_METRIC_NAMES).toHaveLength(4);
+		expect(historyMetricSelection(false)).toEqual(HISTORY_METRIC_NAMES);
+		expect(historyMetricSelection(true)).toEqual([
+			...HISTORY_METRIC_NAMES,
+			"experimental_largest_contentful_paint_with_softnavs",
+			"experimental_cumulative_layout_shift_with_softnavs",
+			"experimental_interaction_to_next_paint_with_softnavs",
+			"experimental_first_contentful_paint_with_softnavs",
 		]);
 	});
 });
