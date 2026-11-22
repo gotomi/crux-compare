@@ -33,7 +33,7 @@ function handleInput(e) {
 function handleBlur(e) {
 	const newValue = e.target.value;
 	if (newValue && !isValidUrl(newValue)) {
-		localError = "Please enter a valid URL";
+		localError = "Please enter a valid URL.";
 	}
 }
 </script>
@@ -112,7 +112,7 @@ function handleBlur(e) {
 
     .input-label {
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-strong);
         font-size: 0.875rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -128,45 +128,41 @@ function handleBlur(e) {
     .text-input {
         flex: 1;
         padding: 12px 16px;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-lg);
         font-size: 14px;
-        transition: all 0.2s ease;
-        background: white;
+        color: var(--text);
+        transition: all var(--transition);
+        background: var(--surface);
     }
 
     .text-input:focus {
         outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-soft);
     }
 
     .text-input.error {
-        border-color: #dc3545;
+        border-color: var(--danger);
     }
 
     .input-error {
         font-size: 0.75rem;
-        color: #dc3545;
+        color: var(--danger);
         margin-top: 2px;
         display: flex;
         align-items: center;
         gap: 4px;
     }
 
-    .input-error::before {
-        content: '⚠';
-        font-size: 0.875rem;
-    }
-
     .remove-btn {
         padding: 8px 12px;
-        background: #dc3545;
-        color: white;
+        background: var(--danger);
+        color: var(--on-danger);
         border: none;
-        border-radius: 6px;
+        border-radius: var(--radius-lg);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all var(--transition);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -175,13 +171,13 @@ function handleBlur(e) {
     }
 
     .remove-btn:hover {
-        background: #c82333;
+        background: var(--danger-hover);
         transform: translateY(-1px);
     }
 
     .remove-btn:focus {
         outline: none;
-        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+        box-shadow: 0 0 0 3px var(--danger-soft);
     }
 
     .remove-icon {

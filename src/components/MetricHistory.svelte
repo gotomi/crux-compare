@@ -5,16 +5,10 @@ import UrlWithIcon from "./UrlWithIcon.svelte";
 
 const rank = ["good", "average", "poor"];
 
-const rankMap = {
-	good: " 🟢 ",
-	average: " 🟠 ",
-	poor: " 🔴 ",
-};
-
-const rankColors = {
-	good: "#28a745",
-	average: "#ffc107",
-	poor: "#dc3545",
+const rankLabels = {
+	good: "good",
+	average: "average",
+	poor: "poor",
 };
 
 const unit = $derived(metric.startsWith("CLS") ? "" : "ms");
@@ -78,7 +72,7 @@ const trend = $derived.by(() => {
 		const b = points[i];
 		segments.push({
 			d: `M ${x(a.index)} ${y(a.value)} L ${x(b.index)} ${y(b.value)}`,
-			color: rankColors[post.ranks?.[b.index]] ?? "#adb5bd",
+			rank: post.ranks?.[b.index] ?? "unknown",
 			title: titleFor(b.index, b.value),
 		});
 	}
@@ -88,8 +82,7 @@ const trend = $derived.by(() => {
 		index: p.index,
 		xp: (x(p.index) / W) * 100,
 		yp: (y(p.value) / H) * 100,
-		color: rankColors[post.ranks?.[p.index]] ?? "#adb5bd",
-		rank: post.ranks?.[p.index] ?? "n/a",
+		rank: post.ranks?.[p.index] ?? "unknown",
 		value: p.value,
 		label: labelFor(p.index),
 	}));
@@ -110,25 +103,25 @@ const activeDot = $derived.by(() => {
             <UrlWithIcon url={post.url} />
         </div>
 
-        {#if rankMap[post.rank]}
-            <div class="metric-content">
-                <div class="metric-value {post.rank}">
-                    <span class="value">{post.p75}</span>
-                    <span class="rank-indicator">{rankMap[post.rank]}</span>
-                </div>
-                <div class="histogram-bars">
-                    {#each post.histogram as item, index}
-                        {#if item > 0}
-                            <div
-                                class="histogram-bar {rank[index]}"
-                                style={"flex:" + item}
-                                title={`${rank[index]}: ${item}%`}
-                            >
-                                <span class="bar-label">{item}%</span>
-                            </div>
-                        {/if}
-                    {/each}
-                </div>
+        {#if rankLabels[post.rank]}
+            <div class="metric-value {post.rank}">
+                <span class="value">{post.p75}</span>
+                <span class="rank-indicator {post.rank}"
+                    ><span class="sr-only">{rankLabels[post.rank]}</span></span
+                >
+            </div>
+            <div class="histogram-bars">
+                {#each post.histogram as item, index}
+                    {#if item > 0}
+                        <div
+                            class="histogram-bar {rank[index]}"
+                            style={"flex:" + item}
+                            title={`${rank[index]}: ${item}%`}
+                        >
+                            <span class="bar-label">{item}%</span>
+                        </div>
+                    {/if}
+                {/each}
             </div>
         {:else}
             <div class="no-data">
@@ -149,7 +142,7 @@ const activeDot = $derived.by(() => {
                     {#each trend.segments as segment}
                         <path
                             d={segment.d}
-                            stroke={segment.color}
+                            class={segment.rank}
                             stroke-width="2"
                             fill="none"
                             vector-effect="non-scaling-stroke"
@@ -161,9 +154,9 @@ const activeDot = $derived.by(() => {
                 {#each trend.dots as dot (dot.index)}
                     <button
                         type="button"
-                        class="dot"
+                        class="dot {dot.rank}"
                         class:selected={pinnedIndex === dot.index}
-                        style={`left:${dot.xp}%;top:${dot.yp}%;--c:${dot.color}`}
+                        style={`left:${dot.xp}%;top:${dot.yp}%`}
                         aria-label={`${dot.label}: ${dot.value}${unit ? ` ${unit}` : ""}, ${dot.rank}`}
                         onmouseenter={() => (hoverIndex = dot.index)}
                         onfocus={() => (hoverIndex = dot.index)}
@@ -209,12 +202,12 @@ const activeDot = $derived.by(() => {
 
 <style>
     .metric-card {
-        background: white;
+        background: var(--surface);
         border-radius: 0;
         padding: 4px 16px;
         margin-bottom: 8px;
-        border-left: 3px solid #e9ecef;
-        transition: all 0.2s ease;
+        border-left: 3px solid var(--border);
+        transition: all var(--transition);
     }
 
     .metric-row {
@@ -230,14 +223,6 @@ const activeDot = $derived.by(() => {
         max-width: 300px;
     }
 
-    .metric-content {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex: 1;
-        min-width: 0;
-    }
-
     .metric-value {
         display: flex;
         align-items: center;
@@ -251,17 +236,17 @@ const activeDot = $derived.by(() => {
     }
 
     .metric-value.good {
-        background: rgba(40, 167, 69, 0.1);
+        background: var(--success-soft);
         color: var(--success);
     }
 
     .metric-value.average {
-        background: rgba(255, 193, 7, 0.1);
+        background: var(--warning-soft);
         color: var(--warning);
     }
 
     .metric-value.poor {
-        background: rgba(220, 53, 69, 0.1);
+        background: var(--danger-soft);
         color: var(--danger);
     }
 
@@ -271,7 +256,34 @@ const activeDot = $derived.by(() => {
     }
 
     .rank-indicator {
-        font-size: 0.9rem;
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .rank-indicator.good {
+        background: var(--chart-good);
+    }
+
+    .rank-indicator.average {
+        background: var(--chart-fair);
+    }
+
+    .rank-indicator.poor {
+        background: var(--chart-poor);
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
     }
 
     .histogram-bars {
@@ -288,10 +300,9 @@ const activeDot = $derived.by(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
         font-weight: 600;
         font-size: 0.75rem;
-        transition: all 0.2s ease;
+        transition: all var(--transition);
         cursor: pointer;
         position: relative;
         min-width: 25px;
@@ -303,21 +314,18 @@ const activeDot = $derived.by(() => {
     }
 
     .histogram-bar.good {
-        background: #28a745;
-        color: #000;
-        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        background: var(--chart-good);
+        color: var(--on-chart-good);
     }
 
     .histogram-bar.average {
-        background: #ffc107;
-        color: #000;
-        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        background: var(--chart-fair);
+        color: var(--on-chart-fair);
     }
 
     .histogram-bar.poor {
-        background: #dc3545;
-        color: #fff;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        background: var(--chart-poor);
+        color: var(--on-chart-poor);
     }
 
     .no-data {
@@ -325,9 +333,9 @@ const activeDot = $derived.by(() => {
         align-items: center;
         justify-content: center;
         padding: 12px 16px;
-        background: var(--light);
+        background: var(--surface-2);
         border-radius: 2px;
-        color: var(--gray);
+        color: var(--text-muted);
         font-size: 0.875rem;
         font-weight: 500;
     }
@@ -345,8 +353,25 @@ const activeDot = $derived.by(() => {
         display: block;
         width: 100%;
         height: 44px;
-        background: #f8f9fa;
+        background: var(--surface-2);
         border-radius: 2px;
+    }
+
+    /* SVG strokes are set via classes so they follow the theme tokens */
+    .trend svg path.good {
+        stroke: var(--chart-good);
+    }
+
+    .trend svg path.average {
+        stroke: var(--chart-fair);
+    }
+
+    .trend svg path.poor {
+        stroke: var(--chart-poor);
+    }
+
+    .trend svg path.unknown {
+        stroke: var(--border-strong);
     }
 
     .dot {
@@ -366,9 +391,21 @@ const activeDot = $derived.by(() => {
         position: absolute;
         inset: 4px;
         border-radius: 50%;
-        background: var(--c, #adb5bd);
-        box-shadow: 0 0 0 1.5px #fff;
+        background: var(--border-strong);
+        box-shadow: 0 0 0 1.5px var(--surface);
         transition: inset 0.1s ease;
+    }
+
+    .dot.good::after {
+        background: var(--chart-good);
+    }
+
+    .dot.average::after {
+        background: var(--chart-fair);
+    }
+
+    .dot.poor::after {
+        background: var(--chart-poor);
     }
 
     .dot:hover::after {
@@ -377,7 +414,7 @@ const activeDot = $derived.by(() => {
 
     .dot.selected::after {
         inset: 2px;
-        box-shadow: 0 0 0 2px #2c3e50;
+        box-shadow: 0 0 0 2px var(--text-strong);
     }
 
     .point-tooltip {
@@ -385,8 +422,8 @@ const activeDot = $derived.by(() => {
         z-index: 5;
         transform: translate(-50%, -100%);
         margin-top: -10px;
-        background: #2c3e50;
-        color: #fff;
+        background: var(--tooltip-bg);
+        color: var(--tooltip-text);
         border-radius: 4px;
         padding: 6px 10px;
         display: flex;
@@ -396,7 +433,7 @@ const activeDot = $derived.by(() => {
         line-height: 1.3;
         pointer-events: none;
         white-space: nowrap;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        box-shadow: var(--shadow-md);
     }
 
     .pt-date {
@@ -415,19 +452,19 @@ const activeDot = $derived.by(() => {
     }
 
     .pt-rank.good {
-        color: #7ee2a0;
+        color: var(--tooltip-good);
     }
 
     .pt-rank.average {
-        color: #ffd66e;
+        color: var(--tooltip-fair);
     }
 
     .pt-rank.poor {
-        color: #ff9ba6;
+        color: var(--tooltip-poor);
     }
 
     .pt-rank.n\/a {
-        color: #dee2e6;
+        color: var(--tooltip-muted);
     }
 
     .rank-strip {
@@ -443,26 +480,26 @@ const activeDot = $derived.by(() => {
     }
 
     .strip-cell.good {
-        background: #28a745;
+        background: var(--chart-good);
     }
 
     .strip-cell.average {
-        background: #ffc107;
+        background: var(--chart-fair);
     }
 
     .strip-cell.poor {
-        background: #dc3545;
+        background: var(--chart-poor);
     }
 
     .strip-cell.empty {
-        background: #e9ecef;
+        background: var(--border);
     }
 
     .scale-row {
         display: flex;
         justify-content: space-between;
         font-size: 0.65rem;
-        color: #6c757d;
+        color: var(--text-muted);
         margin-top: 2px;
     }
 
@@ -473,24 +510,16 @@ const activeDot = $derived.by(() => {
             margin-bottom: 6px;
         }
 
-        .metric-row {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-        }
-
+        /* row 1: domain + p75, row 2: full-width histogram */
         .url-info {
             min-width: auto;
             max-width: none;
-        }
-
-        .metric-content {
-            justify-content: space-between;
+            flex: 1;
         }
 
         .histogram-bars {
+            flex-basis: 100%;
             height: 20px;
-            min-width: 100px;
         }
 
         .metric-value {
@@ -521,15 +550,8 @@ const activeDot = $derived.by(() => {
             gap: 8px;
         }
 
-        .metric-content {
-            flex-direction: column;
-            gap: 8px;
-        }
-
         .histogram-bars {
             height: 18px;
-            min-width: 80px;
-            width: 100%;
         }
 
         .histogram-bar {

@@ -70,20 +70,28 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
         <div class="legend-item good">
             <div class="indicator"></div>
             <span class="legend-text"
-                >{rangeNames.good} &lt; {metricData.range[0]}{unitLabel}</span
+                ><span class="legend-word">{rangeNames.good}</span> &lt;
+                {metricData.range[0]}<span class="legend-unit"
+                    >{unitLabel}</span
+                ></span
             >
         </div>
         <div class="legend-item average">
             <div class="indicator"></div>
             <span class="legend-text"
-                >{rangeNames.medium}
-                {metricData.range[0]} - {metricData.range[1]}{unitLabel}</span
+                ><span class="legend-word">{rangeNames.medium}</span>
+                {metricData.range[0]} - {metricData.range[1]}<span
+                    class="legend-unit">{unitLabel}</span
+                ></span
             >
         </div>
         <div class="legend-item poor">
             <div class="indicator"></div>
             <span class="legend-text"
-                >{rangeNames.poor} &gt; {metricData.range[1]}{unitLabel}</span
+                ><span class="legend-word">{rangeNames.poor}</span> &gt;
+                {metricData.range[1]}<span class="legend-unit"
+                    >{unitLabel}</span
+                ></span
             >
         </div>
     </div>
@@ -91,7 +99,7 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
 
 <style>
     .legend-container {
-        background: white;
+        background: var(--surface);
         border-radius: 4px;
         padding: 20px;
         margin: 16px 0;
@@ -110,7 +118,7 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
         margin: 0;
         font-size: 1.25rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-strong);
     }
 
     .experimental-badge {
@@ -119,8 +127,8 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
         margin-left: 8px;
         padding: 2px 8px;
         border-radius: 6px;
-        background: #fff3cd;
-        color: #856404;
+        background: var(--warning-soft);
+        color: var(--warning);
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
@@ -128,8 +136,8 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
     }
 
     .metric-badge {
-        background: #e9ecef;
-        color: #6c757d;
+        background: var(--surface-2);
+        color: var(--text-muted);
         padding: 4px 12px;
         border-radius: 6px;
         font-size: 0.875rem;
@@ -137,13 +145,13 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
     }
 
     .metric-badge.good {
-        background: #d4edda;
-        color: #155724;
+        background: var(--success-soft);
+        color: var(--success);
     }
 
     .metric-badge.time {
-        background: #d1ecf1;
-        color: #0c5460;
+        background: var(--info-soft);
+        color: var(--info);
     }
 
     .legend-content {
@@ -159,13 +167,13 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
         gap: 8px;
         padding: 6px 12px;
         border-radius: 6px;
-        transition: all 0.2s ease;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
+        transition: all var(--transition);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
     }
 
     .legend-item:hover {
-        background-color: #e9ecef;
+        background-color: var(--border);
         transform: translateY(-1px);
     }
 
@@ -177,21 +185,21 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
     }
 
     .legend-item.good .indicator {
-        background-color: #28a745;
+        background-color: var(--chart-good);
     }
 
     .legend-item.average .indicator {
-        background-color: #ffc107;
+        background-color: var(--chart-fair);
     }
 
     .legend-item.poor .indicator {
-        background-color: #dc3545;
+        background-color: var(--chart-poor);
     }
 
     .legend-text {
         font-size: 0.875rem;
         font-weight: 500;
-        color: #2c3e50;
+        color: var(--text-strong);
         white-space: nowrap;
     }
 
@@ -209,26 +217,34 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
             margin: 12px 0;
         }
 
-        .metric-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
         h2 {
             font-size: 1.1rem;
         }
 
-        .legend-content {
-            flex-direction: column;
-            gap: 8px;
-        }
-
         .legend-item {
-            padding: 8px 12px;
+            padding: 4px 8px;
         }
 
         .legend-text {
             font-size: 0.8rem;
+        }
+
+        /* compact single-row legend: words stay for screen readers only,
+           unit is already visible in the header badge */
+        .legend-word {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .legend-unit {
+            display: none;
         }
 
         .desktop {
@@ -243,10 +259,6 @@ const unitLabel = $derived(unit ? ` ${unit}` : "");
     @media (max-width: 480px) {
         .legend-container {
             padding: 12px;
-        }
-
-        .legend-item {
-            padding: 6px 10px;
         }
     }
 </style>

@@ -5,30 +5,31 @@ import UrlWithIcon from "./UrlWithIcon.svelte";
 
 // categorical palette — deliberately distinct from the good/average/poor
 // traffic lights, since these distributions carry no quality judgement;
-// related labels share a hue family
+// related labels share a hue family. Colors come from the --cat-* theme
+// tokens (see global.css) so segments adapt to light/dark.
 const LABEL_COLORS = {
-	navigate: "#007bff",
-	navigate_cache: "#6ea8fe",
-	reload: "#17a2b8",
-	restore: "#6c757d",
-	back_forward: "#6f42c1",
-	back_forward_cache: "#a98cdf",
-	prerender: "#e83e8c",
-	desktop: "#007bff",
-	phone: "#17a2b8",
-	tablet: "#6f42c1",
-	image: "#fd7e14",
-	text: "#007bff",
+	navigate: "var(--cat-blue)",
+	navigate_cache: "var(--cat-blue-soft)",
+	reload: "var(--cat-cyan)",
+	restore: "var(--cat-gray)",
+	back_forward: "var(--cat-purple)",
+	back_forward_cache: "var(--cat-purple-soft)",
+	prerender: "var(--cat-pink)",
+	desktop: "var(--cat-blue)",
+	phone: "var(--cat-cyan)",
+	tablet: "var(--cat-purple)",
+	image: "var(--cat-orange)",
+	text: "var(--cat-blue)",
 };
 
 const FALLBACK_COLORS = [
-	"#007bff",
-	"#17a2b8",
-	"#6f42c1",
-	"#fd7e14",
-	"#e83e8c",
-	"#20c997",
-	"#6c757d",
+	"var(--cat-blue)",
+	"var(--cat-cyan)",
+	"var(--cat-purple)",
+	"var(--cat-orange)",
+	"var(--cat-pink)",
+	"var(--cat-teal)",
+	"var(--cat-gray)",
 ];
 
 const LABEL_TITLES = {
@@ -116,10 +117,10 @@ const rows = $derived(
 
 <style>
     .fraction-row {
-        background: white;
+        background: var(--surface);
         padding: 4px 16px;
         margin-bottom: 8px;
-        border-left: 3px solid #e9ecef;
+        border-left: 3px solid var(--border);
         display: flex;
         align-items: center;
         gap: 16px;
@@ -144,13 +145,13 @@ const rows = $derived(
         height: 22px;
         border-radius: 2px;
         overflow: hidden;
-        background: #e9ecef;
+        background: var(--chart-track);
         box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .segment {
         height: 100%;
-        transition: filter 0.2s ease;
+        transition: filter var(--transition);
     }
 
     .segment:hover {
@@ -168,12 +169,12 @@ const rows = $derived(
         align-items: center;
         gap: 6px;
         font-size: 0.8rem;
-        color: #495057;
+        color: var(--text-muted);
         white-space: nowrap;
     }
 
     .fraction-label strong {
-        color: #2c3e50;
+        color: var(--text-strong);
     }
 
     .dot {

@@ -115,12 +115,12 @@ const hasAds = $derived(
         margin: 0;
         font-size: 1.25rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-strong);
     }
 
     .badge {
-        background: #e9ecef;
-        color: #6c757d;
+        background: var(--surface-2);
+        color: var(--text-muted);
         padding: 4px 12px;
         border-radius: 6px;
         font-size: 0.875rem;
@@ -132,7 +132,7 @@ const hasAds = $derived(
         margin: 0 0 14px;
         padding: 0 16px;
         font-size: 0.875rem;
-        color: #6c757d;
+        color: var(--text-muted);
     }
 
     .section-hint {
@@ -140,7 +140,8 @@ const hasAds = $derived(
         padding: 10px 16px;
         font-size: 0.875rem;
         font-style: italic;
-        color: #adb5bd;
+        color: var(--text-muted);
+        opacity: 0.8;
     }
 
     @media (max-width: 768px) {

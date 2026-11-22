@@ -32,23 +32,23 @@ const options = $derived.by(() => {
         align-items: center;
         gap: 8px;
         font-size: 14px;
-        color: #495057;
+        color: var(--text-muted);
     }
 
     .trend-picker select {
         padding: 8px 12px;
-        background: #fff;
-        border: 2px solid #e9ecef;
+        background: var(--surface);
+        border: 2px solid var(--border);
         border-radius: 3px;
         font-size: 14px;
-        color: #2c3e50;
+        color: var(--text-strong);
         cursor: pointer;
-        transition: border-color 0.2s ease;
+        transition: border-color var(--transition);
     }
 
     .trend-picker select:focus {
         outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-soft);
     }
 </style>

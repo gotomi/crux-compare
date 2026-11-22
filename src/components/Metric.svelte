@@ -5,10 +5,10 @@ import UrlWithIcon from "./UrlWithIcon.svelte";
 
 const rank = ["good", "average", "poor"];
 
-const rankMap = {
-	good: " 🟢 ",
-	average: " 🟠 ",
-	poor: " 🔴 ",
+const rankLabels = {
+	good: "good",
+	average: "average",
+	poor: "poor",
 };
 </script>
 
@@ -18,25 +18,25 @@ const rankMap = {
             <UrlWithIcon url={post.url} />
         </div>
 
-        {#if rankMap[post.rank]}
-            <div class="metric-content">
-                <div class="metric-value">
-                    <span class="value">{post.p75}</span>
-                    <span class="rank-indicator">{rankMap[post.rank]}</span>
-                </div>
-                <div class="histogram-bars">
-                    {#each post.histogram as item, index}
-                        {#if item > 0}
-                            <div
-                                class="histogram-bar {rank[index]}"
-                                style={"flex:" + item}
-                                title={`${rank[index]}: ${item}%`}
-                            >
-                                <span class="bar-label">{item}%</span>
-                            </div>
-                        {/if}
-                    {/each}
-                </div>
+        {#if rankLabels[post.rank]}
+            <div class="metric-value">
+                <span class="value">{post.p75}</span>
+                <span class="rank-indicator {post.rank}"
+                    ><span class="sr-only">{rankLabels[post.rank]}</span></span
+                >
+            </div>
+            <div class="histogram-bars">
+                {#each post.histogram as item, index}
+                    {#if item > 0}
+                        <div
+                            class="histogram-bar {rank[index]}"
+                            style={"flex:" + item}
+                            title={`${rank[index]}: ${item}%`}
+                        >
+                            <span class="bar-label">{item}%</span>
+                        </div>
+                    {/if}
+                {/each}
             </div>
         {:else}
             <div class="no-data">
@@ -48,12 +48,12 @@ const rankMap = {
 
 <style>
     .metric-card {
-        background: white;
+        background: var(--surface);
         border-radius: 0;
         padding: 4px 16px;
         margin-bottom: 8px;
-        border-left: 3px solid #e9ecef;
-        transition: all 0.2s ease;
+        border-left: 3px solid var(--border);
+        transition: all var(--transition);
     }
 
     .metric-card.good {
@@ -81,14 +81,6 @@ const rankMap = {
         max-width: 300px;
     }
 
-    .metric-content {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex: 1;
-        min-width: 0;
-    }
-
     .metric-value {
         display: flex;
         align-items: center;
@@ -102,17 +94,17 @@ const rankMap = {
     }
 
     .metric-value.good {
-        background: rgba(40, 167, 69, 0.1);
+        background: var(--success-soft);
         color: var(--success);
     }
 
     .metric-value.average {
-        background: rgba(255, 193, 7, 0.1);
+        background: var(--warning-soft);
         color: var(--warning);
     }
 
     .metric-value.poor {
-        background: rgba(220, 53, 69, 0.1);
+        background: var(--danger-soft);
         color: var(--danger);
     }
 
@@ -122,7 +114,34 @@ const rankMap = {
     }
 
     .rank-indicator {
-        font-size: 0.9rem;
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .rank-indicator.good {
+        background: var(--chart-good);
+    }
+
+    .rank-indicator.average {
+        background: var(--chart-fair);
+    }
+
+    .rank-indicator.poor {
+        background: var(--chart-poor);
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
     }
 
     .histogram-bars {
@@ -139,10 +158,9 @@ const rankMap = {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
         font-weight: 600;
         font-size: 0.75rem;
-        transition: all 0.2s ease;
+        transition: all var(--transition);
         cursor: pointer;
         position: relative;
         min-width: 25px;
@@ -154,21 +172,18 @@ const rankMap = {
     }
 
     .histogram-bar.good {
-        background: #28a745;
-        color: #000;
-        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        background: var(--chart-good);
+        color: var(--on-chart-good);
     }
 
     .histogram-bar.average {
-        background: #ffc107;
-        color: #000;
-        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        background: var(--chart-fair);
+        color: var(--on-chart-fair);
     }
 
     .histogram-bar.poor {
-        background: #dc3545;
-        color: #fff;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        background: var(--chart-poor);
+        color: var(--on-chart-poor);
     }
 
     .no-data {
@@ -176,9 +191,9 @@ const rankMap = {
         align-items: center;
         justify-content: center;
         padding: 12px 16px;
-        background: var(--light);
+        background: var(--surface-2);
         border-radius: 2px;
-        color: var(--gray);
+        color: var(--text-muted);
         font-size: 0.875rem;
         font-weight: 500;
     }
@@ -190,24 +205,16 @@ const rankMap = {
             margin-bottom: 6px;
         }
 
-        .metric-row {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-        }
-
+        /* row 1: domain + p75, row 2: full-width histogram */
         .url-info {
             min-width: auto;
             max-width: none;
-        }
-
-        .metric-content {
-            justify-content: space-between;
+            flex: 1;
         }
 
         .histogram-bars {
+            flex-basis: 100%;
             height: 20px;
-            min-width: 100px;
         }
 
         .metric-value {
@@ -225,15 +232,8 @@ const rankMap = {
             gap: 8px;
         }
 
-        .metric-content {
-            flex-direction: column;
-            gap: 8px;
-        }
-
         .histogram-bars {
             height: 18px;
-            min-width: 80px;
-            width: 100%;
         }
 
         .histogram-bar {

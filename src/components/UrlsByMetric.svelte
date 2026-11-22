@@ -212,19 +212,19 @@ const tableHeading = $derived(table[0]);
     .table-wrapper {
         overflow-x: auto;
         border-radius: 3px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-md);
     }
 
     table {
         width: 100%;
         min-width: 800px;
         border-collapse: collapse;
-        background: white;
+        background: var(--surface);
     }
 
     thead th {
-        background: #2c3e50;
-        color: white;
+        background: var(--header-bg);
+        color: var(--header-text);
         font-weight: 600;
         padding: 16px 12px;
         text-align: left;
@@ -238,16 +238,16 @@ const tableHeading = $derived(table[0]);
         font-size: 1.05em;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #ffc107;
+        color: var(--chart-fair);
     }
 
     tbody tr {
-        border-bottom: 1px solid #e9ecef;
-        transition: background-color 0.2s ease;
+        border-bottom: 1px solid var(--border);
+        transition: background-color var(--transition);
     }
 
     tbody tr:hover {
-        background-color: #f8f9fa;
+        background-color: var(--surface-2);
     }
 
     td {
@@ -269,7 +269,7 @@ const tableHeading = $derived(table[0]);
 
     .url-text {
         font-weight: 500;
-        color: #2c3e50;
+        color: var(--text-strong);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -278,14 +278,14 @@ const tableHeading = $derived(table[0]);
 
     .performance-bar {
         position: relative;
-        background-color: #e9ecef;
+        background-color: var(--chart-track);
         height: 8px;
         border-radius: 2px;
         overflow: hidden;
     }
 
     .bar-fill {
-        background-color: #28a745;
+        background-color: var(--chart-good);
         height: 100%;
         transition: width 0.3s ease;
     }
@@ -296,7 +296,7 @@ const tableHeading = $derived(table[0]);
         top: -18px;
         font-size: 12px;
         font-weight: 600;
-        color: #6c757d;
+        color: var(--text-muted);
     }
 
     .icon {
@@ -304,18 +304,18 @@ const tableHeading = $derived(table[0]);
     }
 
     .good {
-        background: #2ead4b56;
+        background: var(--success-soft);
         font-weight: 600;
     }
 
     .average {
-        background: #ffc10790;
+        background: var(--warning-soft);
         font-weight: 600;
     }
 
     .poor {
-        background: #dc3545;
-        color: #fff;
+        background: var(--chart-poor);
+        color: var(--on-chart-poor);
         font-weight: 600;
     }
 
@@ -331,13 +331,13 @@ const tableHeading = $derived(table[0]);
 
     /* badge carries its own background so it reads on all three cell colors */
     .trend.better {
-        background: #d4edda;
-        color: #155724;
+        background: var(--success-soft);
+        color: var(--success);
     }
 
     .trend.worse {
-        background: #f8d7da;
-        color: #721c24;
+        background: var(--danger-soft);
+        color: var(--danger);
     }
 
     .mobile-view {
@@ -345,19 +345,19 @@ const tableHeading = $derived(table[0]);
     }
 
     .metric-card {
-        background: white;
+        background: var(--surface);
         border-radius: 4px;
         padding: 16px;
         margin-bottom: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-md);
         transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+            transform var(--transition),
+            box-shadow var(--transition);
     }
 
     .metric-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--shadow-lg);
     }
 
     .card-header {
@@ -369,7 +369,7 @@ const tableHeading = $derived(table[0]);
 
     .card-header .url-text {
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-strong);
         flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -388,20 +388,20 @@ const tableHeading = $derived(table[0]);
         flex-direction: column;
         align-items: center;
         padding: 8px;
-        background: #f8f9fa;
+        background: var(--surface-2);
         border-radius: 8px;
     }
 
     .metric-name {
         font-size: 12px;
-        color: #6c757d;
+        color: var(--text-muted);
         margin-bottom: 4px;
         text-align: center;
     }
 
     .metric-name.core-vital {
         font-weight: 800;
-        color: #2c3e50;
+        color: var(--text-strong);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
