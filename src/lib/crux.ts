@@ -78,6 +78,11 @@ const RAW_METRIC_KEYS: Record<string, MetricKey> = {
 	round_trip_time: "RTT",
 };
 
+// the History API only needs the stable metrics; experimental soft-navigation
+// variants are added by kruk's experimental flag, while advanced/ad metrics
+// are not rendered in history mode
+export const HISTORY_METRIC_NAMES: string[] = Object.keys(RAW_METRIC_KEYS);
+
 const SOFTNAV_RAW_KEYS: Record<string, SoftnavMetricKey> = {
 	experimental_largest_contentful_paint_with_softnavs: "LCP-SN",
 	experimental_cumulative_layout_shift_with_softnavs: "CLS-SN",
@@ -324,7 +329,8 @@ export interface HistorySite {
 	"CLS-SN"?: MetricHistory;
 	"INP-SN"?: MetricHistory;
 	"FCP-SN"?: MetricHistory;
-	minimalGood: number;
+	// null when the latest period does not contain all three stable CWV
+	minimalGood: number | null;
 }
 
 export interface HistoryParams {
@@ -358,6 +364,62 @@ export function periodRange(iso: string | undefined): string {
 	const start = new Date(end);
 	start.setUTCDate(start.getUTCDate() - 27);
 	return `${fmt(start)} - ${fmt(end)}`;
+}
+
+export interface TrendChange {
+	dir: "better" | "worse";
+	label: string;
+	title: string;
+}
+
+const TREND_THRESHOLD = 0.02;
+
+// p75 change versus the selected earlier collection period; lower is better
+// for every metric. Compare the exact positions in the series: silently
+// skipping a null week would make the displayed comparison period wrong.
+export function trendOf(
+	p75s: Array<number | null> | undefined,
+	trendWeeks: number,
+	dates: string[] = [],
+	metric?: DisplayMetricKey,
+): TrendChange | null {
+	if (!Array.isArray(p75s) || p75s.length <= trendWeeks) return null;
+
+	const lastIndex = p75s.length - 1;
+	const prevIndex = lastIndex - trendWeeks;
+	if (prevIndex < 0) return null;
+
+	const last = p75s[lastIndex];
+	const prev = p75s[prevIndex];
+	if (typeof last !== "number" || typeof prev !== "number") return null;
+
+	const unit = metric?.startsWith("CLS") ? "" : metric ? " ms" : "";
+	const range = periodRange(dates[prevIndex]);
+	const weeksLabel = `vs ${trendWeeks} week${trendWeeks === 1 ? "" : "s"} earlier`;
+
+	// A relative change from zero is undefined, but it can still be a real
+	// regression (e.g. CLS 0.00 -> 0.05), so show the direction explicitly.
+	if (prev === 0) {
+		if (last === 0) return null;
+		const dir = last > 0 ? "worse" : "better";
+		return {
+			dir,
+			label: dir === "worse" ? "▲" : "▼",
+			title: `${dir} from 0 to ${last}${unit}${range ? ` (${range})` : ` ${weeksLabel}`}`,
+		};
+	}
+
+	const delta = (last - prev) / prev;
+	if (!Number.isFinite(delta) || Math.abs(delta) < TREND_THRESHOLD) {
+		return null;
+	}
+
+	const percent = Math.abs(Math.round(delta * 100));
+	return {
+		dir: delta < 0 ? "better" : "worse",
+		label: `${delta < 0 ? "▼" : "▲"}${percent}%`,
+		title: `${percent}% ${delta < 0 ? "better" : "worse"}${range ? ` (${range})` : ` ${weeksLabel}`}`,
+	};
 }
 
 const MISSING_METRIC: MetricHistory = {
@@ -399,14 +461,10 @@ function convertMetricHistory(
 		value === null ? null : metricRank(value, metric),
 	);
 
-	let latest = -1;
-	for (let i = p75s.length - 1; i >= 0; i--) {
-		if (p75s[i] !== null) {
-			latest = i;
-			break;
-		}
-	}
-
+	// The header describes the latest collection period, so the snapshot must
+	// come from that exact period. Do not fall back to an older week when the
+	// latest p75 is null: that would mix unlike periods across URLs.
+	const latest = p75s.length - 1;
 	const latestP75 = latest >= 0 ? p75s[latest] : undefined;
 	if (typeof latestP75 !== "number") {
 		return { ...MISSING_METRIC, p75s, histograms, ranks };
@@ -456,8 +514,9 @@ export function convertHistoryData(
 			url: ((record.key?.url || record.key?.origin) ?? "")
 				.replaceAll("https://", "")
 				.replaceAll("http://", ""),
-			minimalGood: 100,
+			minimalGood: null,
 		};
+		const coreGood: number[] = [];
 
 		for (const [rawName, abbr] of Object.entries(RAW_METRIC_KEYS)) {
 			const raw = record.metrics?.[rawName];
@@ -470,8 +529,14 @@ export function convertHistoryData(
 				CORE_WEB_VITALS.includes(abbr) &&
 				typeof history.histogram[0] === "number"
 			) {
-				item.minimalGood = Math.min(item.minimalGood, history.histogram[0]);
+				coreGood.push(history.histogram[0]);
 			}
+		}
+
+		// a minimum over only the available CWV would overstate low-traffic
+		// URLs as 100% good, so require a value for every stable CWV
+		if (coreGood.length === CORE_WEB_VITALS.length) {
+			item.minimalGood = Math.min(...coreGood);
 		}
 
 		// soft-navigation variants exist only when the experimental request
@@ -485,7 +550,7 @@ export function convertHistoryData(
 		return item;
 	});
 
-	metrics.sort((a, b) => b.minimalGood - a.minimalGood);
+	metrics.sort((a, b) => (b.minimalGood ?? -1) - (a.minimalGood ?? -1));
 
 	return { params, metrics };
 }

@@ -66,7 +66,9 @@ npm run dev
 ### `POST /api/getCrux`
 
 Form-encoded body: `url` (repeatable), `checkOrigin`, `formFactor`, `history`, `experimental`.
-Returns `{ cruxData, byMetric, advanced }` — raw records, the grouped classic metrics, and the grouped advanced metrics. With `experimental`, the soft-navigation CWV variants join `byMetric`, while NAV_TYPES-SN and the ad metrics join `advanced`.
+Returns `{ cruxData, byMetric, advanced }` for a normal query — raw records, the grouped classic metrics, and the grouped advanced metrics. With `experimental`, the soft-navigation CWV variants join `byMetric`, while NAV_TYPES-SN and the ad metrics join `advanced`.
+
+With `history`, the endpoint returns `{ cruxData, byMetric, warnings? }`; the Advanced tab is not available in history mode. The history request only fetches stable metrics plus experimental soft-navigation CWV variants, not the advanced/ad metrics.
 
 ### `POST /api/mcp`
 
@@ -110,6 +112,7 @@ src/
 | Command                         | Description                           |
 | ------------------------------- | ------------------------------------- |
 | `npm run dev`                   | start the dev server                  |
+| `npm test`                      | run unit tests (Vitest)               |
 | `npm run build`                 | production build (Cloudflare adapter) |
 | `npm run preview`               | preview the production build          |
 | `npm run lint` / `lint:fix`     | Biome lint                            |
