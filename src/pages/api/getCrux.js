@@ -1,10 +1,10 @@
-import { getReports } from "kruk";
+import { buildQueryParams, getReports, runQuery } from "kruk";
 import {
 	convertHistoryData,
 	EXPERIMENTAL_AD_NAMES,
 	groupAdvancedByMetric,
 	groupByMetricAndSort,
-	HISTORY_METRIC_NAMES,
+	historyMetricSelection,
 	REQUEST_METRIC_NAMES,
 	sanitizeError,
 	validateFormFactor,
@@ -23,6 +23,32 @@ export async function OPTIONS() {
 		status: 204,
 		headers: corsHeaders,
 	});
+}
+
+/**
+ * kruk's getReports() swallows per-URL errors, so a short or empty result
+ * cannot say why. Re-query one failed URL directly to keep the API's reason
+ * (invalid key, quota, missing data) in the response.
+ */
+async function probeFailureReason(url, apiKey, queryParams) {
+	try {
+		await runQuery(apiKey, buildQueryParams(queryParams, url));
+		return null;
+	} catch (error) {
+		return error instanceof Error ? error.message : "Unknown error";
+	}
+}
+
+// kruk strips the scheme from record URLs and the API normalizes url/origin
+// (adds a trailing slash, drops the path for origin queries), so compare the
+// same canonical form before deciding which input is missing from the result
+function requestUrlKey(url, origin) {
+	try {
+		const parsed = new URL(url);
+		return (origin ? parsed.origin : parsed.href).replace(/^https?:\/\//, "");
+	} catch {
+		return url.replace(/^https?:\/\//, "");
+	}
 }
 
 export async function POST({ request }) {
@@ -57,8 +83,9 @@ export async function POST({ request }) {
 				apiKey: API_KEY,
 				formFactor,
 				origin: checkOrigin,
-				experimental,
-				metrics: HISTORY_METRIC_NAMES,
+				// exactly the metrics convertHistoryData renders: kruk's
+				// experimental flag would also add the unused NAV_TYPES-SN
+				metrics: historyMetricSelection(experimental),
 				periods: 25,
 			});
 
@@ -84,8 +111,8 @@ export async function POST({ request }) {
 			const cruxData = convertHistoryData(historyResult.records);
 			const cruxDataByMetric = groupByMetricAndSort(cruxData.metrics);
 			const warnings = historyResult.failures.map(
-				({ url }) =>
-					`No history data returned for ${url.replace(/^https?:\/\//, "")}`,
+				({ url, message }) =>
+					`No history data returned for ${url.replace(/^https?:\/\//, "")}${message ? ` (${message})` : ""}`,
 			);
 
 			return new Response(
@@ -112,13 +139,40 @@ export async function POST({ request }) {
 		};
 
 		const cruxData = await getReports(urls, API_KEY, queryParams);
-		const cruxDataByMetric = groupByMetricAndSort(cruxData.metrics);
-		const warnings =
-			Array.isArray(cruxData.metrics) && cruxData.metrics.length < urls.length
-				? [
-						`CrUX data was returned for only ${cruxData.metrics.length} of ${urls.length} URLs`,
-					]
-				: [];
+
+		if (cruxData.error) {
+			const reason = await probeFailureReason(urls[0], API_KEY, queryParams);
+			return new Response(
+				JSON.stringify({
+					error: reason
+						? `No CrUX data returned for the requested URLs (${reason})`
+						: "No CrUX data returned for the requested URLs",
+				}),
+				{
+					status: 502,
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+				},
+			);
+		}
+
+		const records = cruxData.metrics ?? [];
+		const cruxDataByMetric = groupByMetricAndSort(records);
+		const warnings = [];
+
+		// Compare counts, not URLs: the API normalizes url to origin (or to a
+		// canonical href with a trailing slash), so a name mismatch alone does
+		// not mean a failure.
+		if (records.length < urls.length) {
+			const returnedUrls = new Set(records.map((item) => item.url));
+			const missingUrl =
+				urls.find(
+					(url) => !returnedUrls.has(requestUrlKey(url, checkOrigin)),
+				) ?? urls[0];
+			const reason = await probeFailureReason(missingUrl, API_KEY, queryParams);
+			warnings.push(
+				`CrUX data was returned for only ${records.length} of ${urls.length} URLs${reason ? ` (${reason})` : ""}`,
+			);
+		}
 
 		return new Response(
 			JSON.stringify({
@@ -126,7 +180,7 @@ export async function POST({ request }) {
 				byMetric: { params: cruxData.params, metrics: cruxDataByMetric },
 				advanced: {
 					params: cruxData.params,
-					metrics: groupAdvancedByMetric(cruxData.metrics),
+					metrics: groupAdvancedByMetric(records),
 				},
 				...(warnings.length ? { warnings } : {}),
 			}),
@@ -141,6 +195,7 @@ export async function POST({ request }) {
 		const message = sanitizeError(error);
 		const status =
 			message.includes("Invalid URL") ||
+			message.includes("Invalid form factor") ||
 			message.includes("At least one") ||
 			message.includes("Maximum")
 				? 400
